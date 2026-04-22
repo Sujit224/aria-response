@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+langgraph
+langchain
+langchain-anthropic
+sqlalchemy
+asyncpg
+psycopg2-binary
+redis
+python-dotenv
+pydantic
+alembic
+websockets
+ultralytics
+opencv-python-headless
+numpy
