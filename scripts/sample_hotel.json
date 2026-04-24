@@ -1,0 +1,108 @@
+
+{
+  "hotel": {
+    "name": "Grand ARIA Hotel",
+    "address": "12 Convention Road, Mumbai 400001"
+  },
+  "blocks": [
+    { "name": "North Wing", "block_code": "A" },
+    { "name": "Central Wing", "block_code": "B" },
+    { "name": "South Wing", "block_code": "C" }
+  ],
+  "floors_per_block": [
+    {
+      "block_code": "B",
+      "floors": [
+        {
+          "level": 1,
+          "grid_width": 20,
+          "grid_height": 10,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+          ],
+          "pois": [
+            { "name": "Room 101", "type": "room",      "coord_x": 1,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 102", "type": "room",      "coord_x": 5,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 103", "type": "room",      "coord_x": 9,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 104", "type": "room",      "coord_x": 13, "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 105", "type": "room",      "coord_x": 17, "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 106", "type": "room",      "coord_x": 1,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 107", "type": "room",      "coord_x": 5,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 108", "type": "room",      "coord_x": 9,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 109", "type": "room",      "coord_x": 13, "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 110", "type": "room",      "coord_x": 17, "coord_y": 7, "is_safe_exit": false },
+            { "name": "Stairwell A", "type": "stairwell", "coord_x": 3,  "coord_y": 9, "is_safe_exit": true },
+            { "name": "Stairwell B", "type": "stairwell", "coord_x": 18, "coord_y": 9, "is_safe_exit": true },
+            { "name": "Aid Kit F1", "type": "medical",   "coord_x": 10, "coord_y": 4, "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 10, "coord_y": 4,
+              "stream_url": "rtsp://camera.hotel.local/block-b/floor1/corridor",
+              "coverage_zones": [
+                { "zone_name": "Corridor Centre F1", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 6 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 2,
+              "stream_url": "rtsp://camera.hotel.local/block-b/floor1/north-lobby",
+              "coverage_zones": [
+                { "zone_name": "North Lobby F1", "start_x": 1, "start_y": 1, "end_x": 4, "end_y": 3 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "grid_width": 20,
+          "grid_height": 10,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+          ],
+          "pois": [
+            { "name": "Room 201", "type": "room",      "coord_x": 1,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 202", "type": "room",      "coord_x": 5,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 203", "type": "room",      "coord_x": 9,  "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 204", "type": "room",      "coord_x": 13, "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 205", "type": "room",      "coord_x": 17, "coord_y": 1, "is_safe_exit": false },
+            { "name": "Room 206", "type": "room",      "coord_x": 1,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 207", "type": "room",      "coord_x": 5,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 208", "type": "room",      "coord_x": 9,  "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 209", "type": "room",      "coord_x": 13, "coord_y": 7, "is_safe_exit": false },
+            { "name": "Room 210", "type": "room",      "coord_x": 17, "coord_y": 7, "is_safe_exit": false },
+            { "name": "Stairwell A", "type": "stairwell", "coord_x": 3,  "coord_y": 9, "is_safe_exit": true },
+            { "name": "Stairwell B", "type": "stairwell", "coord_x": 18, "coord_y": 9, "is_safe_exit": true },
+            { "name": "Aid Kit F2", "type": "medical",   "coord_x": 10, "coord_y": 4, "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 10, "coord_y": 4,
+              "stream_url": "rtsp://camera.hotel.local/block-b/floor2/corridor",
+              "coverage_zones": [
+                { "zone_name": "Corridor Centre F2", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 6 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
