@@ -79,9 +79,9 @@ async def ingest(filepath: str):
                 )
             print(f"      [+] {len(floor_data.get('cameras', []))} cameras")
 
-    print(f"\n[✓] Hotel '{data['hotel']['name']}' written to Firestore.")
+    print(f"\n[OK] Hotel '{data['hotel']['name']}' written to Firestore.")
     print(f"    hotel_id = {hotel_id}")
-    print(f"\n    ➜  Add this to your .env:")
+    print(f"\n    --> Add this to your .env:")
     print(f"       VENUE_ID={hotel_id}")
 
 

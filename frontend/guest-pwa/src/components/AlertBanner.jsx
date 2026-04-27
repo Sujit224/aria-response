@@ -296,6 +296,15 @@ function FloorMap({ incidentData }) {
           ctx.textBaseline = 'middle'
           ctx.fillText('➕', px + cellSize/2, py + cellSize/2)
         }
+        else if (poi.type === 'medical') {
+          ctx.fillStyle = '#1e3a8a'
+          ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2)
+          ctx.fillStyle = '#60a5fa'
+          ctx.font = `${cellSize * 0.6}px Arial`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText('➕', px + cellSize/2, py + cellSize/2)
+        }
         else if ((poi.type === 'exit' || poi.type === 'stairwell') && !isTargetExit) {
           ctx.fillStyle = '#064e3b'
           ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2)
@@ -372,15 +381,18 @@ function FloorMap({ incidentData }) {
       ctx.stroke()
     }
     
-    // 7. Highlight RECOMMENDED EXIT
+    // 7. Highlight RECOMMENDED TARGET (Exit or Aid Kit)
     if (exit_coord) {
       const ex = exit_coord[0] * cellSize
       const ey = exit_coord[1] * cellSize
       
-      // Glow effect for target exit
+      const isAidTarget = incidentData.threat_type === 'medical' && 
+                          (incidentData.severity === 'LOW' || incidentData.severity === 'MEDIUM');
+
+      // Glow effect for target
       ctx.shadowBlur = 15
-      ctx.shadowColor = '#22c55e'
-      ctx.fillStyle = '#22c55e'
+      ctx.shadowColor = isAidTarget ? '#3b82f6' : '#22c55e'
+      ctx.fillStyle = isAidTarget ? '#3b82f6' : '#22c55e'
       ctx.fillRect(ex, ey, cellSize, cellSize)
       ctx.shadowBlur = 0
       
@@ -392,12 +404,12 @@ function FloorMap({ incidentData }) {
       ctx.font = `${cellSize * 0.7}px Arial`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText('🏃', ex + cellSize / 2, ey + cellSize / 2)
+      ctx.fillText(isAidTarget ? '➕' : '🏃', ex + cellSize / 2, ey + cellSize / 2)
 
-      // "Recommended" tag
-      ctx.fillStyle = '#22c55e'
+      // Tag
+      ctx.fillStyle = isAidTarget ? '#3b82f6' : '#22c55e'
       ctx.font = `bold ${cellSize * 0.3}px 'Inter', sans-serif`
-      ctx.fillText('RECOMMENDED', ex + cellSize/2, ey + cellSize + 10)
+      ctx.fillText(isAidTarget ? 'NEAREST AID KIT' : 'RECOMMENDED EXIT', ex + cellSize/2, ey + cellSize + 10)
     }
 
   }, [incidentData, pulse])
@@ -429,7 +441,10 @@ function FloorMap({ incidentData }) {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 8px #3b82f6' }} /> YOU
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#4ade80' }}>
-            <div style={{ width: 8, height: 8, background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} /> RECOMMENDED EXIT
+            <div style={{ 
+              width: 8, height: 8, 
+              background: (incidentData.threat_type === 'medical' && (incidentData.severity === 'LOW' || incidentData.severity === 'MEDIUM')) ? '#3b82f6' : '#22c55e' 
+            }} /> RECOMMENDED TARGET
           </div>
         </div>
       </div>
@@ -589,7 +604,7 @@ export function AlertBanner({ incident, onDismiss }) {
         {isMedical ? (
           <>
             <MedicalCard incidentData={incident} />
-            {isHighSeverity && <FloorMap incidentData={incident} />}
+            <FloorMap incidentData={incident} />
           </>
         ) : (
           <>

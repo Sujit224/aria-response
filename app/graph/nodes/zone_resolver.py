@@ -79,19 +79,26 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
 
     # ── Nearest aid kit ──────────────────────────────────────────
     aid_kits = [p for p in all_pois if p["type"] == "medical"]
-    nearest_aid = (
-        min(aid_kits, key=lambda a: abs(a["coord_x"] - guest_x) + abs(a["coord_y"] - guest_y))["name"]
-        if aid_kits else "Front desk"
+    nearest_aid_kit = (
+        min(aid_kits, key=lambda a: abs(a["coord_x"] - guest_x) + abs(a["coord_y"] - guest_y))
+        if aid_kits else None
     )
+    nearest_aid_name = nearest_aid_kit["name"] if nearest_aid_kit else "Front desk"
 
     # ── A* pathfinding ───────────────────────────────────────────
+    # If minor medical, route to aid kit. Otherwise route to exit.
+    target_poi = nearest_exit
+    if nlp.threat_type == "medical" and nlp.severity not in ("CRITICAL", "HIGH") and nearest_aid_kit:
+        target_poi = nearest_aid_kit
+
     path = astar(
         grid    = floor["static_grid"],
         start   = (guest_x, guest_y),
-        end     = (nearest_exit["coord_x"], nearest_exit["coord_y"]),
+        end     = (target_poi["coord_x"], target_poi["coord_y"]),
         blocked = [],
     )
     evac_path     = [Coord(x=c[0], y=c[1]) for c in path]
+    target_coord  = Coord(x=target_poi["coord_x"], y=target_poi["coord_y"])
     blocked_nodes = []
 
     # ── On-duty staff for this incident ──────────────────────────
@@ -185,8 +192,8 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
         zone_2_rooms       = z2_rooms,
         zone_3_rooms       = zone_3_rooms,
         nearest_exit_name  = nearest_exit["name"],
-        nearest_exit_coord = Coord(x=nearest_exit["coord_x"], y=nearest_exit["coord_y"]),
-        nearest_aid_kit    = nearest_aid,
+        nearest_exit_coord = target_coord,
+        nearest_aid_kit    = nearest_aid_name,
         evacuation_path    = evac_path,
         blocked_nodes      = blocked_nodes,
         staff_on_floor     = staff_ids,

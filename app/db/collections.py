@@ -85,8 +85,18 @@ async def _run(fn):
 # ──────────────────────────────────────────────────────────────────
 
 async def save_hotel(name: str, address: str) -> str:
-    doc_id = _id()
     db = get_db()
+    existing = await _run(lambda: list(
+        db.collection("hotels").where("name", "==", name).limit(1).stream()
+    ))
+    if existing:
+        doc_id = existing[0].id
+        await _run(lambda: existing[0].reference.update(_flatten_arrays({
+            "address": address, "updated_at": _now()
+        })))
+        return doc_id
+
+    doc_id = _id()
     await _run(lambda: db.collection("hotels").document(doc_id).set(_flatten_arrays({
         "id": doc_id, "name": name, "address": address,
         "created_at": _now(),
@@ -107,8 +117,19 @@ async def list_hotels() -> list[dict]:
 
 
 async def save_block(hotel_id: str, name: str, block_code: str) -> str:
-    doc_id = _id()
     db = get_db()
+    existing = await _run(lambda: list(
+        db.collection("blocks").where("hotel_id", "==", hotel_id)
+        .where("block_code", "==", block_code).limit(1).stream()
+    ))
+    if existing:
+        doc_id = existing[0].id
+        await _run(lambda: existing[0].reference.update(_flatten_arrays({
+            "name": name, "updated_at": _now()
+        })))
+        return doc_id
+
+    doc_id = _id()
     await _run(lambda: db.collection("blocks").document(doc_id).set(_flatten_arrays({
         "id": doc_id, "hotel_id": hotel_id,
         "name": name, "block_code": block_code,
@@ -132,8 +153,20 @@ async def get_block(block_id: str) -> dict | None:
 
 async def save_floor(block_id: str, level: int, grid_width: int,
                      grid_height: int, static_grid: list) -> str:
-    doc_id = _id()
     db = get_db()
+    existing = await _run(lambda: list(
+        db.collection("floors").where("block_id", "==", block_id)
+        .where("level", "==", level).limit(1).stream()
+    ))
+    if existing:
+        doc_id = existing[0].id
+        await _run(lambda: existing[0].reference.update(_flatten_arrays({
+            "grid_width": grid_width, "grid_height": grid_height,
+            "static_grid": static_grid, "updated_at": _now()
+        })))
+        return doc_id
+
+    doc_id = _id()
     await _run(lambda: db.collection("floors").document(doc_id).set(_flatten_arrays({
         "id": doc_id, "block_id": block_id, "level": level,
         "grid_width": grid_width, "grid_height": grid_height,
@@ -159,11 +192,23 @@ async def list_floors(block_id: str) -> list[dict]:
 
 async def save_poi(floor_id: str, name: str, type_: str,
                    coord_x: int, coord_y: int, is_safe_exit: bool = False) -> str:
-    doc_id = _id()
     db = get_db()
+    existing = await _run(lambda: list(
+        db.collection("pois").where("floor_id", "==", floor_id)
+        .where("name", "==", name).limit(1).stream()
+    ))
+    if existing:
+        doc_id = existing[0].id
+        await _run(lambda: existing[0].reference.update(_flatten_arrays({
+            "type": type_, "coord_x": coord_x, "coord_y": coord_y,
+            "is_safe_exit": is_safe_exit, "updated_at": _now()
+        })))
+        return doc_id
+
+    doc_id = _id()
     await _run(lambda: db.collection("pois").document(doc_id).set(_flatten_arrays({
-        "id": doc_id, "floor_id": floor_id, "name": name,
-        "type": type_, "coord_x": coord_x, "coord_y": coord_y,
+        "id": doc_id, "floor_id": floor_id, "name": name, "type": type_,
+        "coord_x": coord_x, "coord_y": coord_y,
         "is_safe_exit": is_safe_exit,
     })))
     return doc_id
