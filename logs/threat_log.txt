@@ -1,0 +1,220 @@
+
+============================================================
+TIMESTAMP : 2026-04-28 00:48:42
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 64%
+LOCATION  : Bottom-Right
+MESSAGE   : KNIFE detected at Bottom-Right with 64% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:48:42
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : SMOKE
+CONFIDENCE: 85%
+LOCATION  : Middle-Center
+MESSAGE   : SMOKE confirmed at Middle-Center. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:49:20
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 62%
+LOCATION  : Top-Left
+MESSAGE   : BLOOD detected at Top-Left with 62% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:50:33
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 85%
+LOCATION  : Bottom-Center
+MESSAGE   : KNIFE detected at Bottom-Center with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:51:33
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 79%
+LOCATION  : Bottom-Left
+MESSAGE   : KNIFE detected at Bottom-Left with 79% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:52:51
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : SMOKE
+CONFIDENCE: 65%
+LOCATION  : Top-Left
+MESSAGE   : SMOKE confirmed at Top-Left. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:53:00
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 61%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 61% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:54:06
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 69%
+LOCATION  : Middle-Right
+MESSAGE   : GUN detected at Middle-Right with 69% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:55:07
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 61%
+LOCATION  : Bottom-Left
+MESSAGE   : BLOOD detected at Bottom-Left with 61% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:56:17
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 68%
+LOCATION  : Top-Left
+MESSAGE   : GUN detected at Top-Left with 68% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:57:19
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 75%
+LOCATION  : Middle-Right
+MESSAGE   : GUN detected at Middle-Right with 75% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 00:59:35
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 71%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 71% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:02:07
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 67%
+LOCATION  : Middle-Right
+MESSAGE   : GUN detected at Middle-Right with 67% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:05:05
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 68%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 68% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:06:22
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 60%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 60% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:08:22
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 64%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 64% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:08:40
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : FIRE
+CONFIDENCE: 68%
+LOCATION  : Middle-Center
+MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:09:26
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : FIRE
+CONFIDENCE: 71%
+LOCATION  : Middle-Center
+MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:10:11
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : FIRE
+CONFIDENCE: 72%
+LOCATION  : Middle-Center
+MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:11:00
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 77%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 77% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:12:30
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 72%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 72% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-28 01:15:37
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 61%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 61% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
