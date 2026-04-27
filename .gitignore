@@ -19,6 +19,11 @@ venv.bak/
 .env
 .env.local
 
+# Firebase service account key — NEVER commit this
+secrets/
+*.json
+!scripts/sample_hotel.json
+
 # Frontend (Node.js/Vite)
 node_modules/
 dist/

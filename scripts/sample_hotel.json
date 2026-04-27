@@ -1,62 +1,326 @@
-
 {
   "hotel": {
-    "name": "Grand ARIA Hotel",
-    "address": "12 Convention Road, Mumbai 400001"
+    "name": "The Meridian Grand",
+    "address": "1 Harbour View Drive, Mumbai 400001"
   },
   "blocks": [
-    { "name": "North Wing", "block_code": "A" },
-    { "name": "Central Wing", "block_code": "B" },
-    { "name": "South Wing", "block_code": "C" }
+    { "name": "Sapphire Tower", "block_code": "A" },
+    { "name": "Emerald Wing",   "block_code": "B" },
+    { "name": "Ruby Annex",     "block_code": "C" }
   ],
   "floors_per_block": [
+    {
+      "block_code": "A",
+      "floors": [
+        {
+          "level": 1,
+          "grid_width": 24,
+          "grid_height": 12,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1]
+          ],
+          "pois": [
+            { "name": "Room 101", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 102", "type": "room", "coord_x": 6,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 103", "type": "room", "coord_x": 11, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 104", "type": "room", "coord_x": 16, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 105", "type": "room", "coord_x": 21, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 106", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 107", "type": "room", "coord_x": 6,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 108", "type": "room", "coord_x": 11, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 109", "type": "room", "coord_x": 16, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 110", "type": "room", "coord_x": 21, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Main Lobby",  "type": "lobby",     "coord_x": 12, "coord_y": 5,  "is_safe_exit": false },
+            { "name": "Stairwell N", "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell S", "type": "stairwell", "coord_x": 19, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Fire Exit A1","type": "exit",       "coord_x": 22, "coord_y": 6,  "is_safe_exit": true  },
+            { "name": "Aid Kit L1",  "type": "medical",   "coord_x": 8,  "coord_y": 5,  "is_safe_exit": false },
+            { "name": "AED Unit L1", "type": "medical",   "coord_x": 16, "coord_y": 5,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 12, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F1/main-corridor",
+              "coverage_zones": [
+                { "zone_name": "Main Corridor A-F1", "start_x": 3, "start_y": 3, "end_x": 21, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/A/F1/north-rooms",
+              "coverage_zones": [
+                { "zone_name": "North Rooms A-F1", "start_x": 1, "start_y": 1, "end_x": 5, "end_y": 4 }
+              ]
+            },
+            {
+              "coord_x": 21, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/A/F1/south-rooms",
+              "coverage_zones": [
+                { "zone_name": "South Rooms A-F1", "start_x": 17, "start_y": 1, "end_x": 23, "end_y": 4 }
+              ]
+            },
+            {
+              "coord_x": 22, "coord_y": 6,
+              "stream_url": "rtsp://cam.meridian.local/A/F1/fire-exit",
+              "coverage_zones": [
+                { "zone_name": "Fire Exit A-F1", "start_x": 20, "start_y": 4, "end_x": 23, "end_y": 9 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "grid_width": 24,
+          "grid_height": 12,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1]
+          ],
+          "pois": [
+            { "name": "Room 201", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 202", "type": "room", "coord_x": 6,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 203", "type": "room", "coord_x": 11, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 204", "type": "room", "coord_x": 16, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 205", "type": "room", "coord_x": 21, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 206", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 207", "type": "room", "coord_x": 6,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 208", "type": "room", "coord_x": 11, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 209", "type": "room", "coord_x": 16, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 210", "type": "room", "coord_x": 21, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Business Lounge", "type": "lobby",     "coord_x": 12, "coord_y": 5,  "is_safe_exit": false },
+            { "name": "Stairwell N", "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell S", "type": "stairwell", "coord_x": 19, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Fire Exit A2","type": "exit",       "coord_x": 22, "coord_y": 6,  "is_safe_exit": true  },
+            { "name": "Aid Kit L2",  "type": "medical",   "coord_x": 8,  "coord_y": 5,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 12, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F2/main-corridor",
+              "coverage_zones": [
+                { "zone_name": "Main Corridor A-F2", "start_x": 3, "start_y": 3, "end_x": 21, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 10,
+              "stream_url": "rtsp://cam.meridian.local/A/F2/south-corridor",
+              "coverage_zones": [
+                { "zone_name": "South Rooms A-F2", "start_x": 1, "start_y": 8, "end_x": 5, "end_y": 11 }
+              ]
+            },
+            {
+              "coord_x": 17, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/A/F2/north-east",
+              "coverage_zones": [
+                { "zone_name": "NE Rooms A-F2", "start_x": 15, "start_y": 1, "end_x": 23, "end_y": 4 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "grid_width": 24,
+          "grid_height": 12,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1]
+          ],
+          "pois": [
+            { "name": "Room 301", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 302", "type": "room", "coord_x": 6,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 303", "type": "room", "coord_x": 11, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 304", "type": "room", "coord_x": 16, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Suite 305","type": "room", "coord_x": 21, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 306", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 307", "type": "room", "coord_x": 6,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 308", "type": "room", "coord_x": 11, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Suite 309","type": "room", "coord_x": 16, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Suite 310","type": "room", "coord_x": 21, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Sky Lounge",   "type": "lobby",     "coord_x": 12, "coord_y": 5,  "is_safe_exit": false },
+            { "name": "Stairwell N",  "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell S",  "type": "stairwell", "coord_x": 19, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Rooftop Exit", "type": "exit",       "coord_x": 22, "coord_y": 6,  "is_safe_exit": true  },
+            { "name": "Aid Kit L3",   "type": "medical",   "coord_x": 8,  "coord_y": 5,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 12, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F3/main-corridor",
+              "coverage_zones": [
+                { "zone_name": "Main Corridor A-F3", "start_x": 3, "start_y": 3, "end_x": 21, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 21, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F3/east-wing",
+              "coverage_zones": [
+                { "zone_name": "East Wing A-F3", "start_x": 18, "start_y": 1, "end_x": 23, "end_y": 11 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F3/west-wing",
+              "coverage_zones": [
+                { "zone_name": "West Wing A-F3", "start_x": 1, "start_y": 1, "end_x": 5, "end_y": 11 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "grid_width": 24,
+          "grid_height": 12,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,1],
+            [1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1]
+          ],
+          "pois": [
+            { "name": "Penthouse 401", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Penthouse 402", "type": "room", "coord_x": 6,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Penthouse 403", "type": "room", "coord_x": 11, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Penthouse 404", "type": "room", "coord_x": 16, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Penthouse 405", "type": "room", "coord_x": 21, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Penthouse 406", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Penthouse 407", "type": "room", "coord_x": 6,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Penthouse 408", "type": "room", "coord_x": 11, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Penthouse 409", "type": "room", "coord_x": 16, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Penthouse 410", "type": "room", "coord_x": 21, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Rooftop Deck",  "type": "lobby",     "coord_x": 12, "coord_y": 5,  "is_safe_exit": false },
+            { "name": "Stairwell N",   "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell S",   "type": "stairwell", "coord_x": 19, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Helipad Exit",  "type": "exit",       "coord_x": 12, "coord_y": 0,  "is_safe_exit": true  },
+            { "name": "Aid Kit L4",    "type": "medical",   "coord_x": 8,  "coord_y": 5,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 12, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/A/F4/main-corridor",
+              "coverage_zones": [
+                { "zone_name": "Penthouse Corridor A-F4", "start_x": 3, "start_y": 3, "end_x": 21, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/A/F4/entrance",
+              "coverage_zones": [
+                { "zone_name": "Penthouse Entrance A-F4", "start_x": 1, "start_y": 1, "end_x": 6, "end_y": 4 }
+              ]
+            },
+            {
+              "coord_x": 22, "coord_y": 10,
+              "stream_url": "rtsp://cam.meridian.local/A/F4/stairwell",
+              "coverage_zones": [
+                { "zone_name": "Stairwell Area A-F4", "start_x": 18, "start_y": 8, "end_x": 23, "end_y": 11 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     {
       "block_code": "B",
       "floors": [
         {
           "level": 1,
           "grid_width": 20,
-          "grid_height": 10,
+          "grid_height": 12,
           "static_grid": [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1]
           ],
           "pois": [
-            { "name": "Room 101", "type": "room",      "coord_x": 1,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 102", "type": "room",      "coord_x": 5,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 103", "type": "room",      "coord_x": 9,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 104", "type": "room",      "coord_x": 13, "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 105", "type": "room",      "coord_x": 17, "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 106", "type": "room",      "coord_x": 1,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 107", "type": "room",      "coord_x": 5,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 108", "type": "room",      "coord_x": 9,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 109", "type": "room",      "coord_x": 13, "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 110", "type": "room",      "coord_x": 17, "coord_y": 7, "is_safe_exit": false },
-            { "name": "Stairwell A", "type": "stairwell", "coord_x": 3,  "coord_y": 9, "is_safe_exit": true },
-            { "name": "Stairwell B", "type": "stairwell", "coord_x": 18, "coord_y": 9, "is_safe_exit": true },
-            { "name": "Aid Kit F1", "type": "medical",   "coord_x": 10, "coord_y": 4, "is_safe_exit": false }
+            { "name": "Room 101B", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 102B", "type": "room", "coord_x": 5,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 103B", "type": "room", "coord_x": 10, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 104B", "type": "room", "coord_x": 15, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 105B", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 106B", "type": "room", "coord_x": 5,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 107B", "type": "room", "coord_x": 10, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 108B", "type": "room", "coord_x": 15, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Emerald Lobby","type": "lobby",     "coord_x": 10, "coord_y": 5,  "is_safe_exit": false },
+            { "name": "Stairwell E",  "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell W",  "type": "stairwell", "coord_x": 18, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Fire Exit B1", "type": "exit",       "coord_x": 19, "coord_y": 5,  "is_safe_exit": true  },
+            { "name": "Aid Kit B1",   "type": "medical",   "coord_x": 7,  "coord_y": 5,  "is_safe_exit": false }
           ],
           "cameras": [
             {
-              "coord_x": 10, "coord_y": 4,
-              "stream_url": "rtsp://camera.hotel.local/block-b/floor1/corridor",
+              "coord_x": 10, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/B/F1/corridor",
               "coverage_zones": [
-                { "zone_name": "Corridor Centre F1", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 6 }
+                { "zone_name": "Main Corridor B-F1", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 8 }
               ]
             },
             {
               "coord_x": 2, "coord_y": 2,
-              "stream_url": "rtsp://camera.hotel.local/block-b/floor1/north-lobby",
+              "stream_url": "rtsp://cam.meridian.local/B/F1/north-lobby",
               "coverage_zones": [
-                { "zone_name": "North Lobby F1", "start_x": 1, "start_y": 1, "end_x": 4, "end_y": 3 }
+                { "zone_name": "North Lobby B-F1", "start_x": 1, "start_y": 1, "end_x": 4, "end_y": 4 }
+              ]
+            },
+            {
+              "coord_x": 18, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/B/F1/south-lobby",
+              "coverage_zones": [
+                { "zone_name": "South Lobby B-F1", "start_x": 14, "start_y": 1, "end_x": 19, "end_y": 4 }
+              ]
+            },
+            {
+              "coord_x": 19, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/B/F1/fire-exit",
+              "coverage_zones": [
+                { "zone_name": "Fire Exit Area B-F1", "start_x": 17, "start_y": 3, "end_x": 19, "end_y": 9 }
               ]
             }
           ]
@@ -64,40 +328,211 @@
         {
           "level": 2,
           "grid_width": 20,
-          "grid_height": 10,
+          "grid_height": 12,
           "static_grid": [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1]
           ],
           "pois": [
-            { "name": "Room 201", "type": "room",      "coord_x": 1,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 202", "type": "room",      "coord_x": 5,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 203", "type": "room",      "coord_x": 9,  "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 204", "type": "room",      "coord_x": 13, "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 205", "type": "room",      "coord_x": 17, "coord_y": 1, "is_safe_exit": false },
-            { "name": "Room 206", "type": "room",      "coord_x": 1,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 207", "type": "room",      "coord_x": 5,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 208", "type": "room",      "coord_x": 9,  "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 209", "type": "room",      "coord_x": 13, "coord_y": 7, "is_safe_exit": false },
-            { "name": "Room 210", "type": "room",      "coord_x": 17, "coord_y": 7, "is_safe_exit": false },
-            { "name": "Stairwell A", "type": "stairwell", "coord_x": 3,  "coord_y": 9, "is_safe_exit": true },
-            { "name": "Stairwell B", "type": "stairwell", "coord_x": 18, "coord_y": 9, "is_safe_exit": true },
-            { "name": "Aid Kit F2", "type": "medical",   "coord_x": 10, "coord_y": 4, "is_safe_exit": false }
+            { "name": "Room 201B", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 202B", "type": "room", "coord_x": 5,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 203B", "type": "room", "coord_x": 10, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 204B", "type": "room", "coord_x": 15, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 205B", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 206B", "type": "room", "coord_x": 5,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 207B", "type": "room", "coord_x": 10, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 208B", "type": "room", "coord_x": 15, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Stairwell E",  "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell W",  "type": "stairwell", "coord_x": 18, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Fire Exit B2", "type": "exit",       "coord_x": 19, "coord_y": 5,  "is_safe_exit": true  },
+            { "name": "Aid Kit B2",   "type": "medical",   "coord_x": 7,  "coord_y": 5,  "is_safe_exit": false }
           ],
           "cameras": [
             {
-              "coord_x": 10, "coord_y": 4,
-              "stream_url": "rtsp://camera.hotel.local/block-b/floor2/corridor",
+              "coord_x": 10, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/B/F2/corridor",
               "coverage_zones": [
-                { "zone_name": "Corridor Centre F2", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 6 }
+                { "zone_name": "Corridor B-F2", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 9,
+              "stream_url": "rtsp://cam.meridian.local/B/F2/stairwell",
+              "coverage_zones": [
+                { "zone_name": "Stairwell Area B-F2", "start_x": 1, "start_y": 8, "end_x": 5, "end_y": 11 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "grid_width": 20,
+          "grid_height": 12,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1]
+          ],
+          "pois": [
+            { "name": "Room 301B", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 302B", "type": "room", "coord_x": 5,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 303B", "type": "room", "coord_x": 10, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 304B", "type": "room", "coord_x": 15, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 305B", "type": "room", "coord_x": 1,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 306B", "type": "room", "coord_x": 5,  "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 307B", "type": "room", "coord_x": 10, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Room 308B", "type": "room", "coord_x": 15, "coord_y": 9,  "is_safe_exit": false },
+            { "name": "Stairwell E",  "type": "stairwell", "coord_x": 3,  "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Stairwell W",  "type": "stairwell", "coord_x": 18, "coord_y": 11, "is_safe_exit": true  },
+            { "name": "Fire Exit B3", "type": "exit",       "coord_x": 19, "coord_y": 5,  "is_safe_exit": true  },
+            { "name": "Aid Kit B3",   "type": "medical",   "coord_x": 7,  "coord_y": 5,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 10, "coord_y": 5,
+              "stream_url": "rtsp://cam.meridian.local/B/F3/corridor",
+              "coverage_zones": [
+                { "zone_name": "Corridor B-F3", "start_x": 1, "start_y": 3, "end_x": 18, "end_y": 8 }
+              ]
+            },
+            {
+              "coord_x": 15, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/B/F3/east-rooms",
+              "coverage_zones": [
+                { "zone_name": "East Rooms B-F3", "start_x": 12, "start_y": 1, "end_x": 19, "end_y": 4 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "block_code": "C",
+      "floors": [
+        {
+          "level": 1,
+          "grid_width": 18,
+          "grid_height": 10,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+          ],
+          "pois": [
+            { "name": "Room 101C", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 102C", "type": "room", "coord_x": 5,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 103C", "type": "room", "coord_x": 9,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 104C", "type": "room", "coord_x": 13, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 105C", "type": "room", "coord_x": 1,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 106C", "type": "room", "coord_x": 5,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 107C", "type": "room", "coord_x": 9,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 108C", "type": "room", "coord_x": 13, "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Ruby Lounge",  "type": "lobby",     "coord_x": 9,  "coord_y": 4,  "is_safe_exit": false },
+            { "name": "Stairwell C1", "type": "stairwell", "coord_x": 3,  "coord_y": 9,  "is_safe_exit": true  },
+            { "name": "Stairwell C2", "type": "stairwell", "coord_x": 16, "coord_y": 9,  "is_safe_exit": true  },
+            { "name": "Fire Exit C1", "type": "exit",       "coord_x": 17, "coord_y": 4,  "is_safe_exit": true  },
+            { "name": "Aid Kit C1",   "type": "medical",   "coord_x": 6,  "coord_y": 4,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 9, "coord_y": 4,
+              "stream_url": "rtsp://cam.meridian.local/C/F1/corridor",
+              "coverage_zones": [
+                { "zone_name": "Corridor C-F1", "start_x": 1, "start_y": 3, "end_x": 16, "end_y": 6 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/C/F1/entrance",
+              "coverage_zones": [
+                { "zone_name": "Entrance C-F1", "start_x": 1, "start_y": 1, "end_x": 4, "end_y": 3 }
+              ]
+            },
+            {
+              "coord_x": 14, "coord_y": 2,
+              "stream_url": "rtsp://cam.meridian.local/C/F1/east-end",
+              "coverage_zones": [
+                { "zone_name": "East End C-F1", "start_x": 11, "start_y": 1, "end_x": 17, "end_y": 4 }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "grid_width": 18,
+          "grid_height": 10,
+          "static_grid": [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+            [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1]
+          ],
+          "pois": [
+            { "name": "Room 201C", "type": "room", "coord_x": 1,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 202C", "type": "room", "coord_x": 5,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 203C", "type": "room", "coord_x": 9,  "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 204C", "type": "room", "coord_x": 13, "coord_y": 1,  "is_safe_exit": false },
+            { "name": "Room 205C", "type": "room", "coord_x": 1,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 206C", "type": "room", "coord_x": 5,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 207C", "type": "room", "coord_x": 9,  "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Room 208C", "type": "room", "coord_x": 13, "coord_y": 7,  "is_safe_exit": false },
+            { "name": "Stairwell C1", "type": "stairwell", "coord_x": 3,  "coord_y": 9,  "is_safe_exit": true  },
+            { "name": "Stairwell C2", "type": "stairwell", "coord_x": 16, "coord_y": 9,  "is_safe_exit": true  },
+            { "name": "Fire Exit C2", "type": "exit",       "coord_x": 17, "coord_y": 4,  "is_safe_exit": true  },
+            { "name": "Aid Kit C2",   "type": "medical",   "coord_x": 6,  "coord_y": 4,  "is_safe_exit": false }
+          ],
+          "cameras": [
+            {
+              "coord_x": 9, "coord_y": 4,
+              "stream_url": "rtsp://cam.meridian.local/C/F2/corridor",
+              "coverage_zones": [
+                { "zone_name": "Corridor C-F2", "start_x": 1, "start_y": 3, "end_x": 16, "end_y": 6 }
+              ]
+            },
+            {
+              "coord_x": 2, "coord_y": 7,
+              "stream_url": "rtsp://cam.meridian.local/C/F2/stairwell",
+              "coverage_zones": [
+                { "zone_name": "Stairwell C-F2", "start_x": 1, "start_y": 6, "end_x": 5, "end_y": 9 }
+              ]
+            },
+            {
+              "coord_x": 16, "coord_y": 4,
+              "stream_url": "rtsp://cam.meridian.local/C/F2/fire-exit",
+              "coverage_zones": [
+                { "zone_name": "Fire Exit C-F2", "start_x": 14, "start_y": 3, "end_x": 17, "end_y": 6 }
               ]
             }
           ]

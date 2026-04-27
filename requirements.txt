@@ -2,14 +2,11 @@ fastapi
 uvicorn[standard]
 langgraph
 langchain
-langchain-anthropic
-sqlalchemy
-asyncpg
-psycopg2-binary
-redis
+langchain-groq
+firebase-admin
+google-cloud-firestore
 python-dotenv
 pydantic
-alembic
 websockets
 ultralytics
 opencv-python-headless
