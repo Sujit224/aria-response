@@ -1,32 +1,28 @@
-import os
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
-from app.models.tables import Base
-from dotenv import load_dotenv
-
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost:5432/aria_response")
-
-engine = create_async_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
-
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+"""
+Replaces the Redis-based session.py.
+The get_db() shim is kept so that graph nodes calling
+'from app.db.session import AsyncSessionLocal' don't break
+during the transition period.
+"""
+from app.db.firebase import get_db  # noqa: F401 — re-export for compat
 
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+class _FakeSessionLocal:
+    """
+    Compatibility stub.  The LangGraph nodes have been migrated to use
+    app.db.collections directly, but any leftover import of AsyncSessionLocal
+    will not crash the server.
+    """
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_):
+        pass
+
+
+AsyncSessionLocal = _FakeSessionLocal
 
 
 async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """No-op — Firestore is schema-less, no migrations needed."""
+    pass

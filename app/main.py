@@ -7,26 +7,27 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from app.db.session import init_db
+import app.db.firebase as firebase
 from app.ws.chat import chat_ws_endpoint
 from app.api.admin import router as admin_router
 from app.api.map import router as map_router
 from app.api.incidents import router as incident_router
 from app.api.staff import router as staff_router
+from app.api.occupants import router as occupants_router
 from app.services.ack_watchdog import ack_watchdog
 from app.vision.camera_manager import CameraManager
 
 _camera_manager: CameraManager | None = None
-_watchdog_task:  asyncio.Task | None  = None
+_watchdog_task:  asyncio.Task  | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _camera_manager, _watchdog_task
 
-    # 1 — Initialise DB (creates all tables if they don't exist)
-    await init_db()
-    print("[ARIA] Database initialised")
+    # 1 — Initialise Firebase (Firestore + FCM)
+    firebase.initialize()
+    print("[ARIA] Firebase ready")
 
     # 2 — Start ack watchdog background task
     _watchdog_task = asyncio.create_task(ack_watchdog())
@@ -52,7 +53,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="ARIA — Automated Response and Incident Alerting",
-    version="1.0.0",
+    version="2.0.0",
+    description="Firebase-powered emergency response platform with FCM push notifications.",
     lifespan=lifespan,
 )
 
@@ -64,25 +66,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── REST routers ─────────────────────────────────────────────────
-app.include_router(admin_router,    prefix="/api/v1")
-app.include_router(map_router,      prefix="/api/v1")
-app.include_router(incident_router, prefix="/api/v1")
-app.include_router(staff_router,    prefix="/api/v1")
+# ── REST routers ──────────────────────────────────────────────────
+app.include_router(admin_router,     prefix="/api/v1")
+app.include_router(map_router,       prefix="/api/v1")
+app.include_router(incident_router,  prefix="/api/v1")
+app.include_router(staff_router,     prefix="/api/v1")
+app.include_router(occupants_router, prefix="/api/v1")
 
 
-# ── WebSocket ────────────────────────────────────────────────────
+# ── WebSocket ─────────────────────────────────────────────────────
 @app.websocket("/ws/aria/{venue_id}/{session_id}")
 async def websocket_aria(websocket: WebSocket, venue_id: str, session_id: str):
     """
-    Unified real-time channel for guests and staff.
-    Guest:  connects with their session_id, sends chat messages, receives THREAT_DETECTED + CHAT_ACK
-    Staff:  connects with staff_{staff_id} as session_id, receives STAFF_ALERT + DISPATCH_REMINDER
+    Unified real-time channel (Firebase Firestore backed — no Redis).
+    Guests connect with their session_id.
+    Staff connect with session_id = "staff_{staff_id}".
     """
     await chat_ws_endpoint(websocket, session_id, venue_id)
 
 
-# ── Health ───────────────────────────────────────────────────────
+# ── Health ────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "ARIA", "version": "1.0.0"}
+    return {"status": "ok", "service": "ARIA", "version": "2.0.0", "backend": "Firebase"}

@@ -1,12 +1,9 @@
 import asyncio
 import json
-import os
-import redis.asyncio as aioredis
 from fastapi import WebSocket, WebSocketDisconnect
 from app.models.schemas import IncomingMessage, PipelineState
 from app.graph.pipeline import aria_pipeline
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+from app.db.firebase import get_db
 
 
 class ConnectionManager:
@@ -34,58 +31,115 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def redis_listener(session_id: str, venue_id: str):
+def _setup_session_listener(session_id: str, queue: asyncio.Queue, loop: asyncio.AbstractEventLoop):
     """
-    Subscribes to:
-      - session:{session_id}    → events targeted at this specific guest/staff
-      - staff:{venue_id}        → venue-wide staff alerts (if sender is staff)
-      - dashboard:{venue_id}    → ops dashboard events
+    Attaches a Firestore on_snapshot listener to:
+      sessions/{session_id}/events
 
-    Forwards all published messages to the connected WebSocket client.
+    When a new event document is added, it is forwarded to the asyncio Queue
+    using run_coroutine_threadsafe (because on_snapshot runs in a thread).
+    Returns the watch handle (call .unsubscribe() to stop).
     """
-    r = await aioredis.from_url(REDIS_URL, decode_responses=True)
-    pubsub = r.pubsub()
-
-    await pubsub.subscribe(
-        f"session:{session_id}",
-        f"staff:{venue_id}",
-        f"dashboard:{venue_id}",
+    db = get_db()
+    events_ref = (
+        db.collection("chat_sessions")
+        .document(session_id)
+        .collection("events")
     )
 
-    try:
-        async for raw in pubsub.listen():
-            if raw["type"] != "message":
-                continue
-            try:
-                payload = json.loads(raw["data"])
-                await manager.send(session_id, payload)
-            except Exception:
-                continue
-    except asyncio.CancelledError:
-        pass
-    finally:
-        await pubsub.unsubscribe()
-        await r.aclose()
+    def _on_snapshot(col_snapshot, changes, read_time):
+        for change in changes:
+            if change.type.name == "ADDED":
+                data = change.document.to_dict()
+                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+
+    return events_ref.on_snapshot(_on_snapshot)
+
+
+def _setup_staff_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio.AbstractEventLoop):
+    """
+    Attaches a Firestore on_snapshot listener to:
+      venues/{venue_id}/staff_events
+
+    Connected staff WebSocket sessions receive STAFF_ALERT, DISPATCH_REMINDER, etc.
+    """
+    db = get_db()
+    ref = (
+        db.collection("venues")
+        .document(venue_id)
+        .collection("staff_events")
+    )
+
+    def _on_snapshot(col_snapshot, changes, read_time):
+        for change in changes:
+            if change.type.name == "ADDED":
+                data = change.document.to_dict()
+                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+
+    return ref.on_snapshot(_on_snapshot)
+
+
+def _setup_dashboard_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio.AbstractEventLoop):
+    """
+    Attaches a Firestore on_snapshot listener to:
+      venues/{venue_id}/dashboard_events
+    """
+    db = get_db()
+    ref = (
+        db.collection("venues")
+        .document(venue_id)
+        .collection("dashboard_events")
+    )
+
+    def _on_snapshot(col_snapshot, changes, read_time):
+        for change in changes:
+            if change.type.name == "ADDED":
+                data = change.document.to_dict()
+                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+
+    return ref.on_snapshot(_on_snapshot)
+
+
+async def _queue_forwarder(session_id: str, queue: asyncio.Queue):
+    """
+    Continuously drains the asyncio Queue and forwards events to the WebSocket.
+    Runs as an asyncio Task alongside the receive loop.
+    """
+    while True:
+        data = await queue.get()
+        await manager.send(session_id, data)
 
 
 async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str):
     """
-    Main WebSocket handler.
+    Unified real-time WebSocket handler.
 
     Connect:  ws://host/ws/aria/{venue_id}/{session_id}
 
-    Send:
-        {
-            "session_id": "...",      // optional, resume existing session
-            "raw_text": "...",
-            "room_id": "poi-uuid",    // guest's room POI id
-            "language": "en"
-        }
+    Guest sends:
+        { "raw_text": "...", "room_id": "poi-uuid", "language": "en" }
 
-    Receive:  THREAT_DETECTED | CHAT_ACK | STAFF_ALERT | INCIDENT_UPDATE | error
+    Staff connects with session_id = "staff_{staff_id}" and receives:
+        STAFF_ALERT | DISPATCH_REMINDER | INCIDENT_RESOLVED | PATH_UPDATE
+
+    Events are delivered via Firestore on_snapshot → asyncio Queue → WebSocket.
+    No Redis involved.
     """
     await manager.connect(session_id, websocket)
-    listener_task = asyncio.create_task(redis_listener(session_id, venue_id))
+    queue = asyncio.Queue()
+    loop  = asyncio.get_event_loop()
+
+    is_staff = session_id.startswith("staff_")
+
+    # ── Attach Firestore listeners ────────────────────────────────
+    watches = []
+    watches.append(_setup_session_listener(session_id, queue, loop))
+
+    if is_staff:
+        watches.append(_setup_staff_listener(venue_id, queue, loop))
+        watches.append(_setup_dashboard_listener(venue_id, queue, loop))
+
+    forwarder_task = asyncio.create_task(_queue_forwarder(session_id, queue))
 
     try:
         while True:
@@ -122,5 +176,10 @@ async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str)
     except WebSocketDisconnect:
         pass
     finally:
-        listener_task.cancel()
+        forwarder_task.cancel()
+        for watch in watches:
+            try:
+                watch.unsubscribe()
+            except Exception:
+                pass
         manager.disconnect(session_id)

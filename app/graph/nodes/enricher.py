@@ -1,69 +1,50 @@
 import uuid
-from sqlalchemy import select
 from app.models.schemas import PipelineState, EnrichedMessage
-from app.models.tables import Guest, POI, Floor, Block, ChatSession
-from app.db.session import AsyncSessionLocal
+from app.db.collections import get_poi_chain, save_chat_session, get_chat_session
 
 
 async def enricher_node(state: PipelineState) -> PipelineState:
     """
-    Resolves physical location from room_id (poi_id):
-        pois → floor_id → floors → block_id → blocks
+    Resolves physical location from room_id (poi_id) using Firestore.
+    poi chain: pois → floor → block (single get_poi_chain call)
 
-    Also creates or resumes a ChatSession row.
+    Also creates or resumes a ChatSession document in Firestore.
     """
-    incoming = state.incoming
+    incoming   = state.incoming
     session_id = incoming.session_id
+    poi_id     = incoming.room_id
 
-    poi_id        = incoming.room_id
-    room_number   = None
-    floor_id      = None
-    floor_level   = None
-    block_id      = None
-    block_code    = None
-    coord_x       = None
-    coord_y       = None
+    room_number = floor_id = block_id = block_code = None
+    floor_level = coord_x = coord_y = wing = None
 
-    async with AsyncSessionLocal() as db:
+    # ── Location chain ───────────────────────────────────────────
+    if poi_id:
+        chain = await get_poi_chain(poi_id)
+        if chain:
+            room_number = chain.get("name")
+            floor_id    = chain.get("floor_id")
+            floor_level = chain.get("floor_level")
+            block_id    = chain.get("block_id")
+            block_code  = chain.get("block_code")
+            coord_x     = chain.get("coord_x")
+            coord_y     = chain.get("coord_y")
 
-        # ── Location chain: pois → floors → blocks ──────────────
-        if poi_id:
-            result = await db.execute(
-                select(POI, Floor, Block)
-                .join(Floor, POI.floor_id == Floor.id)
-                .join(Block, Floor.block_id == Block.id)
-                .where(POI.id == poi_id)
-            )
-            row = result.first()
-            if row:
-                poi, floor, block = row
-                room_number = poi.name
-                floor_id    = str(floor.id)
-                floor_level = floor.level
-                block_id    = str(block.id)
-                block_code  = block.block_code
-                coord_x     = poi.coord_x
-                coord_y     = poi.coord_y
+    # ── Chat session: resume or create ───────────────────────────
+    # Always use the original session_id from the client.
+    # If no Firestore doc exists yet (first ever message), create it —
+    # but NEVER replace session_id with a new UUID, otherwise the CHAT_ACK
+    # will be published to a different channel than the WebSocket is listening on.
+    if not session_id:
+        session_id = str(uuid.uuid4())
 
-        # ── Chat session: resume or create ───────────────────────
-        if session_id:
-            existing = await db.execute(
-                select(ChatSession).where(ChatSession.id == session_id)
-            )
-            if not existing.scalar_one_or_none():
-                session_id = None           # stale id — create fresh
-
-        if not session_id:
-            session_id = str(uuid.uuid4())
-            poi_ref    = poi_id if poi_id else None
-            new_sess   = ChatSession(
-                id          = session_id,
-                hotel_id    = incoming.venue_id,
-                poi_id      = poi_ref,
-                sender_type = "guest",
-            )
-            db.add(new_sess)
-            await db.commit()
+    existing = await get_chat_session(session_id)
+    if not existing:
+        await save_chat_session(
+            session_id  = session_id,
+            hotel_id    = incoming.venue_id,
+            poi_id      = poi_id,
+            sender_type = "guest",
+        )
 
     state.enriched = EnrichedMessage(
         session_id  = session_id,

@@ -1,15 +1,14 @@
 import os
 import json
-from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.models.schemas import PipelineState, NLPResult
-from app.models.tables import ChatMessage
-from app.db.session import AsyncSessionLocal
+from app.db.collections import save_chat_message
 
-llm = ChatAnthropic(
-    model="claude-sonnet-4-20250514",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
-    max_tokens=512,
+llm = ChatGroq(
+    model="qwen/qwen3-32b",
+    api_key=os.getenv("GROQ_API_KEY"),
+    temperature=0,
 )
 
 SYSTEM_PROMPT = """You are a crisis detection classifier for a hotel emergency response system.
@@ -37,7 +36,7 @@ Rules:
 async def nlp_classifier_node(state: PipelineState) -> PipelineState:
     """
     Sends enriched message text to Claude.
-    Writes ChatMessage row with NLP output baked in.
+    Writes ChatMessage document to Firestore.
     Sets state.is_threat flag for the routing conditional edge.
     """
     enriched = state.enriched
@@ -62,41 +61,38 @@ async def nlp_classifier_node(state: PipelineState) -> PipelineState:
         }
 
     nlp = NLPResult(
-        message_id    = enriched.message_id,
-        session_id    = enriched.session_id,
-        threat_type   = parsed.get("threat_type", "none"),
-        confidence    = parsed.get("confidence", 0.0),
-        severity      = parsed.get("severity", "NONE"),
-        is_threat     = parsed.get("is_threat", False),
-        victim_entity = parsed.get("victim_entity"),
+        message_id     = enriched.message_id,
+        session_id     = enriched.session_id,
+        threat_type    = parsed.get("threat_type", "none"),
+        confidence     = parsed.get("confidence", 0.0),
+        severity       = parsed.get("severity", "NONE"),
+        is_threat      = parsed.get("is_threat", False),
+        victim_entity  = parsed.get("victim_entity"),
         symptom_entity = parsed.get("symptom_entity"),
-        poi_id        = enriched.poi_id,
-        room_number   = enriched.room_number,
-        floor_id      = enriched.floor_id,
-        floor_level   = enriched.floor_level,
-        block_id      = enriched.block_id,
-        block_code    = enriched.block_code,
-        coord_x       = enriched.coord_x,
-        coord_y       = enriched.coord_y,
-        venue_id      = enriched.venue_id,
-        raw_text      = enriched.raw_text,
+        poi_id         = enriched.poi_id,
+        room_number    = enriched.room_number,
+        floor_id       = enriched.floor_id,
+        floor_level    = enriched.floor_level,
+        block_id       = enriched.block_id,
+        block_code     = enriched.block_code,
+        coord_x        = enriched.coord_x,
+        coord_y        = enriched.coord_y,
+        venue_id       = enriched.venue_id,
+        raw_text       = enriched.raw_text,
     )
 
-    # Persist ChatMessage — always, threat or not
-    async with AsyncSessionLocal() as db:
-        msg = ChatMessage(
-            id             = enriched.message_id,
-            session_id     = enriched.session_id,
-            raw_text       = enriched.raw_text,
-            language       = enriched.language,
-            threat_type    = nlp.threat_type,
-            severity       = nlp.severity,
-            nlp_confidence = nlp.confidence,
-            victim_entity  = nlp.victim_entity,
-            symptom_entity = nlp.symptom_entity,
-        )
-        db.add(msg)
-        await db.commit()
+    # Persist ChatMessage to Firestore — always, threat or not
+    await save_chat_message({
+        "id":             enriched.message_id,
+        "session_id":     enriched.session_id,
+        "raw_text":       enriched.raw_text,
+        "language":       enriched.language,
+        "threat_type":    nlp.threat_type,
+        "severity":       nlp.severity,
+        "nlp_confidence": nlp.confidence,
+        "victim_entity":  nlp.victim_entity,
+        "symptom_entity": nlp.symptom_entity,
+    })
 
     state.nlp       = nlp
     state.is_threat = nlp.is_threat

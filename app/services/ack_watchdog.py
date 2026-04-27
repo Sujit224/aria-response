@@ -1,76 +1,62 @@
 import asyncio
-import os
-import json
 from datetime import datetime, timedelta
-from sqlalchemy import select, and_
-import redis.asyncio as aioredis
-from app.models.tables import Dispatch, Staff, Incident
-from app.db.session import AsyncSessionLocal
+from app.db.collections import get_pending_dispatches, publish_staff_event
 
-REDIS_URL     = os.getenv("REDIS_URL", "redis://localhost:6379")
-CHECK_INTERVAL = 15       # seconds between watchdog checks
-ACK_TIMEOUT    = 60       # seconds before re-alerting
+
+CHECK_INTERVAL = 15   # seconds
+ACK_TIMEOUT    = 60   # seconds before re-alerting
 
 
 async def ack_watchdog():
     """
     Runs as a background asyncio task for the lifetime of the FastAPI app.
     Every CHECK_INTERVAL seconds:
-      - Finds dispatches where ack_status=PENDING and sent_at < now - 60s
-      - Re-publishes the staff alert to Redis
-      - Logs the re-alert (does NOT create a new Dispatch row)
+      - Queries Firestore dispatches where ack_status=PENDING
+      - For any dispatch older than ACK_TIMEOUT, re-publishes a DISPATCH_REMINDER
+        to the venue's staff_events channel (Firestore, picked up by WS handler)
     """
     print("[ARIA-WATCHDOG] Started — checking every 15s for unacknowledged dispatches")
 
     while True:
         await asyncio.sleep(CHECK_INTERVAL)
         try:
-            cutoff = datetime.utcnow() - timedelta(seconds=ACK_TIMEOUT)
-
-            async with AsyncSessionLocal() as db:
-                result = await db.execute(
-                    select(Dispatch, Staff, Incident)
-                    .join(Staff,    Dispatch.staff_id    == Staff.id)
-                    .join(Incident, Dispatch.incident_id == Incident.id)
-                    .where(
-                        and_(
-                            Dispatch.ack_status == "PENDING",
-                            Dispatch.sent_at    <= cutoff,
-                            Incident.status     == "active",
-                        )
-                    )
-                )
-                rows = result.all()
-
-            if not rows:
+            # We don't have a hotel_id at this level, so query all hotels.
+            # In production, run one watchdog per active venue.
+            import os
+            hotel_id = os.getenv("VENUE_ID", "")
+            if not hotel_id:
                 continue
 
-            r = await aioredis.from_url(REDIS_URL, decode_responses=True)
+            rows = await get_pending_dispatches(hotel_id)
+            now  = datetime.utcnow()
 
-            for dispatch, staff, incident in rows:
+            for row in rows:
+                sent_at = datetime.fromisoformat(row["sent_at"])
+                if (now - sent_at).total_seconds() < ACK_TIMEOUT:
+                    continue
+
+                inc = row.get("_incident", {})
                 print(
-                    f"[ARIA-WATCHDOG] Re-alerting staff {staff.name} "
-                    f"for incident {incident.id} (pending {ACK_TIMEOUT}s)"
+                    f"[ARIA-WATCHDOG] Re-alerting staff {row['staff_id'][:8]} "
+                    f"for incident {row['incident_id'][:8]} (pending >{ACK_TIMEOUT}s)"
                 )
-                await r.publish(
-                    f"staff:{incident.hotel_id}",
-                    json.dumps({
+
+                await publish_staff_event(
+                    hotel_id,
+                    {
                         "event": "DISPATCH_REMINDER",
                         "data": {
-                            "dispatch_id":   str(dispatch.id),
-                            "incident_id":   str(incident.id),
-                            "staff_id":      str(staff.id),
-                            "staff_name":    staff.name,
-                            "message":       dispatch.message_text,
-                            "full_location": incident.full_location,
-                            "severity":      incident.severity,
-                            "pending_since": dispatch.sent_at.isoformat(),
+                            "dispatch_id":   row["id"],
+                            "incident_id":   row["incident_id"],
+                            "staff_id":      row["staff_id"],
+                            "message":       row.get("message_text", ""),
+                            "full_location": inc.get("full_location", ""),
+                            "severity":      inc.get("severity", ""),
+                            "pending_since": row["sent_at"],
                             "re_alert":      True,
                         },
-                    }),
+                    }
                 )
-
-            await r.aclose()
 
         except asyncio.CancelledError:
             print("[ARIA-WATCHDOG] Stopped.")

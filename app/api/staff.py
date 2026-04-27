@@ -1,10 +1,10 @@
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, and_
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.db.session import get_db
-from app.models.tables import Staff, Dispatch, Incident
+from app.db.collections import (
+    get_on_duty_staff,
+    update_staff_location,
+    get_pending_dispatches,
+)
 
 router = APIRouter(prefix="/staff", tags=["staff"])
 
@@ -15,87 +15,37 @@ class LocationUpdate(BaseModel):
 
 
 @router.get("/on-duty")
-async def get_on_duty_staff(hotel_id: str, db: AsyncSession = Depends(get_db)):
-    """Returns all on-duty staff with current floor + block — used by zone resolver."""
-    result = await db.execute(
-        select(Staff).where(
-            and_(Staff.hotel_id == hotel_id, Staff.on_duty == True)
-        )
-    )
-    staff = result.scalars().all()
-    return [
-        {
-            "staff_id":        s.id,
-            "name":            s.name,
-            "role":            s.role,
-            "current_status":  s.current_status,
-            "current_floor_id": str(s.current_floor_id) if s.current_floor_id else None,
-            "current_block_id": str(s.current_block_id) if s.current_block_id else None,
-        }
-        for s in staff
-    ]
+async def get_on_duty(hotel_id: str):
+    """Returns all on-duty staff with current floor + block."""
+    return await get_on_duty_staff(hotel_id)
 
 
 @router.patch("/{staff_id}/location")
-async def update_staff_location(
-    staff_id: str,
-    body: LocationUpdate,
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Staff device heartbeat — updates current floor + block.
-    Zone resolver queries this to find on-duty staff near an incident.
-    Called every 30s from the staff dashboard.
-    """
-    result = await db.execute(select(Staff).where(Staff.id == staff_id))
-    staff = result.scalar_one_or_none()
-    if not staff:
-        raise HTTPException(status_code=404, detail="Staff not found")
-
-    await db.execute(
-        update(Staff)
-        .where(Staff.id == staff_id)
-        .values(
-            current_floor_id = body.floor_id,
-            current_block_id = body.block_id,
-        )
-    )
-    await db.commit()
+async def update_location(staff_id: str, body: LocationUpdate):
+    """Staff device heartbeat — updates current floor + block in Firestore."""
+    await update_staff_location(staff_id, body.floor_id, body.block_id)
     return {"status": "updated", "staff_id": staff_id}
 
 
 @router.get("/dispatches/pending")
-async def get_pending_dispatches(hotel_id: str, db: AsyncSession = Depends(get_db)):
+async def pending_dispatches(hotel_id: str):
     """
-    Returns all PENDING dispatches for the ack watchdog and staff dashboard.
+    Returns all PENDING dispatches for this venue.
     Dashboard flashes rows in yellow if pending > 60s.
     """
-    result = await db.execute(
-        select(Dispatch, Staff, Incident)
-        .join(Staff,    Dispatch.staff_id    == Staff.id)
-        .join(Incident, Dispatch.incident_id == Incident.id)
-        .where(
-            and_(
-                Incident.hotel_id   == hotel_id,
-                Dispatch.ack_status == "PENDING",
-                Incident.status     == "active",
-            )
-        )
-        .order_by(Dispatch.sent_at.asc())
-    )
-    rows = result.all()
+    rows = await get_pending_dispatches(hotel_id)
+    from datetime import datetime
     now = datetime.utcnow()
     return [
         {
-            "dispatch_id":   str(d.id),
-            "incident_id":   str(i.id),
-            "staff_id":      str(s.id),
-            "staff_name":    s.name,
-            "full_location": i.full_location,
-            "severity":      i.severity,
-            "sent_at":       d.sent_at.isoformat(),
-            "pending_secs":  int((now - d.sent_at).total_seconds()),
-            "overdue":       (now - d.sent_at).total_seconds() > 60,
+            "dispatch_id":   r["id"],
+            "incident_id":   r["incident_id"],
+            "staff_id":      r["staff_id"],
+            "full_location": r.get("_incident", {}).get("full_location", ""),
+            "severity":      r.get("_incident", {}).get("severity", ""),
+            "sent_at":       r["sent_at"],
+            "pending_secs":  int((now - datetime.fromisoformat(r["sent_at"])).total_seconds()),
+            "overdue":       (now - datetime.fromisoformat(r["sent_at"])).total_seconds() > 60,
         }
-        for d, s, i in rows
+        for r in rows
     ]

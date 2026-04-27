@@ -1,13 +1,13 @@
 import os
 import json
-from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.models.schemas import PipelineState, GeneratedMessages
 
-llm = ChatAnthropic(
-    model="claude-sonnet-4-20250514",
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
-    max_tokens=1024,
+llm = ChatGroq(
+    model="qwen/qwen3-32b",
+    api_key=os.getenv("GROQ_API_KEY"),
+    temperature=0,
 )
 
 SYSTEM_PROMPT = """You are the emergency communication engine for ARIA — a hotel crisis response system.
