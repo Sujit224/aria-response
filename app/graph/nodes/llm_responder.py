@@ -5,7 +5,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from app.models.schemas import PipelineState, GeneratedMessages
 
 llm = ChatGroq(
-    model="qwen/qwen3-32b",
+    model="llama-3.3-70b-versatile",
     api_key=os.getenv("GROQ_API_KEY"),
     temperature=0,
 )
@@ -14,7 +14,7 @@ SYSTEM_PROMPT = """You are the emergency communication engine for ARIA — a hot
 
 Given a resolved incident, generate role-specific messages. Return ONLY a JSON object:
 {
-  "msg_guest_ack": "Direct reply to the guest. Calm, reassuring. Confirm help is coming to their exact location.",
+  "msg_guest_ack": "Direct reply to the guest. Calm, reassuring. Confirm that an assistant is on the way to their exact location. Instruct them to open the door and not to panic.",
   "msg_staff_zone1": "Immediate action for zone 1 staff (same floor/block). Location, threat type, nearest aid kit.",
   "msg_staff_zone2": "Standby message for adjacent floor staff. Brief.",
   "msg_staff_zone3": "Awareness-only for other blocks. One sentence.",
@@ -56,7 +56,7 @@ Incident:
         result = json.loads(raw.strip())
     except Exception:
         result = {
-            "msg_guest_ack":    f"We received your alert. Help is on the way to {zone.full_location}.",
+            "msg_guest_ack":    f"We received your alert. An assistant is on the way to {zone.full_location}. Please open the door and don't panic.",
             "msg_staff_zone1":  f"ALERT: {zone.threat_type.upper()} at {zone.full_location}. Respond immediately.",
             "msg_staff_zone2":  f"Incident at {zone.full_location}. Stand by.",
             "msg_staff_zone3":  f"Advisory: incident Floor {zone.floor_level}, Block {zone.block_code}.",

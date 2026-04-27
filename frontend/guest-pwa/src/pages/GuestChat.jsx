@@ -80,16 +80,32 @@ export function GuestChat() {
       exit_name:     data.zone_name || 'EXIT A',
       blocked_nodes: data.blocked_nodes || [],
       path_update:   data.path_update || [],
+      assigned_staff_names: data.assigned_staff_names || [],
+      static_grid:   data.static_grid || [],
+      grid_width:    data.grid_width || 0,
+      grid_height:   data.grid_height || 0,
+      guest_coord:   data.guest_coord || [0,0],
+      exit_coord:    data.exit_coord || [0,0],
+      all_pois:      data.all_pois || [],
       room_name:     roomName,
       // steps will arrive via FCM push notification (data payload)
       // or via the chat ack message below
       steps: data.steps || [],
     })
 
+    const isMedical = data.type?.toLowerCase() === 'medical'
+    const staffNames = data.assigned_staff_names && data.assigned_staff_names.length > 0 
+      ? data.assigned_staff_names.join(' and ') 
+      : 'Our staff'
+
+    const messageText = isMedical 
+      ? `🚨 MEDICAL EMERGENCY\n\nHelp is on the way. ${staffNames} will be with you shortly.\n\nPlease stay where you are, do not panic, and leave the door open.`
+      : `🚨 EMERGENCY ALERT\n\nA ${data.type?.toLowerCase() || 'safety'} incident has been detected near your location.\n\nPlease follow the evacuation instructions above. Head to the nearest safe exit immediately.`
+
     setMessages(prev => [...prev, {
       id:   `threat-${Date.now()}`,
       role: 'aria',
-      text: `🚨 EMERGENCY ALERT\n\nA ${data.type?.toLowerCase() || 'safety'} incident has been detected near your location.\n\nPlease follow the evacuation instructions above. Head to the nearest safe exit immediately.`,
+      text: messageText,
       ts:   Date.now(),
     }])
   }, [roomName])

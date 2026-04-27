@@ -49,6 +49,13 @@ async def alert_dispatcher_node(state: PipelineState) -> PipelineState:
             "full_location": zone.full_location,
             "blocked_nodes": blocked_list,
             "path_update":   path_list,
+            "assigned_staff_names": zone.assigned_staff_names,
+            "static_grid":   zone.static_grid,
+            "grid_width":    zone.grid_width,
+            "grid_height":   zone.grid_height,
+            "guest_coord":   [zone.guest_coord.x, zone.guest_coord.y],
+            "exit_coord":    [zone.nearest_exit_coord.x, zone.nearest_exit_coord.y],
+            "all_pois":      zone.all_pois,
         },
     }
 

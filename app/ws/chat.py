@@ -1,5 +1,6 @@
 import asyncio
 import json
+from datetime import datetime
 from fastapi import WebSocket, WebSocketDisconnect
 from app.models.schemas import IncomingMessage, PipelineState
 from app.graph.pipeline import aria_pipeline
@@ -47,11 +48,14 @@ def _setup_session_listener(session_id: str, queue: asyncio.Queue, loop: asyncio
         .collection("events")
     )
 
+    start_time = datetime.utcnow().isoformat()
+
     def _on_snapshot(col_snapshot, changes, read_time):
         for change in changes:
             if change.type.name == "ADDED":
                 data = change.document.to_dict()
-                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+                if data.get("_ts", "") >= start_time:
+                    asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 
     return events_ref.on_snapshot(_on_snapshot)
 
@@ -70,11 +74,14 @@ def _setup_staff_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio.Abs
         .collection("staff_events")
     )
 
+    start_time = datetime.utcnow().isoformat()
+
     def _on_snapshot(col_snapshot, changes, read_time):
         for change in changes:
             if change.type.name == "ADDED":
                 data = change.document.to_dict()
-                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+                if data.get("_ts", "") >= start_time:
+                    asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 
     return ref.on_snapshot(_on_snapshot)
 
@@ -91,11 +98,14 @@ def _setup_dashboard_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio
         .collection("dashboard_events")
     )
 
+    start_time = datetime.utcnow().isoformat()
+
     def _on_snapshot(col_snapshot, changes, read_time):
         for change in changes:
             if change.type.name == "ADDED":
                 data = change.document.to_dict()
-                asyncio.run_coroutine_threadsafe(queue.put(data), loop)
+                if data.get("_ts", "") >= start_time:
+                    asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 
     return ref.on_snapshot(_on_snapshot)
 
@@ -152,7 +162,7 @@ async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str)
                 continue
 
             raw_text = data.get("raw_text", "").strip()
-            if not raw_text or raw_text == "__staff_connect__":
+            if not raw_text or raw_text in ("__staff_connect__", "__ping__"):
                 continue
 
             incoming = IncomingMessage(

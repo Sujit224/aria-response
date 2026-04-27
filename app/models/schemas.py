@@ -90,6 +90,12 @@ class ZoneResolution(BaseModel):
     evacuation_path: List[Coord]        # A* result
     blocked_nodes: List[Coord]          # hazard overlay for frontend
     staff_on_floor: List[str]
+    assigned_staff_names: List[str]     # names of staff assigned to this incident
+    static_grid: List[List[int]]        # floor layout
+    grid_width: int
+    grid_height: int
+    guest_coord: Coord                  # start position for map
+    all_pois: List[dict]                # all rooms/exits on floor
     session_id: str
     venue_id: str
     message_id: str
@@ -148,6 +154,13 @@ class ThreatDetectedPayload(BaseModel):
     full_location: str
     blocked_nodes: List[List[int]]      # [[x,y], ...]
     path_update: List[List[int]]        # [[x,y], ...] A* green path
+    assigned_staff_names: List[str] = []
+    static_grid: List[List[int]] = []
+    grid_width: int = 0
+    grid_height: int = 0
+    guest_coord: List[int] = [0,0]
+    exit_coord: List[int] = [0,0]
+    all_pois: List[dict] = []
 
 
 class StaffDispatchedPayload(BaseModel):

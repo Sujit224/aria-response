@@ -13,7 +13,7 @@
  *  - Minimise button to collapse back to chat
  */
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const SEV_COLOR = {
   CRITICAL: '#dc2626',
@@ -217,6 +217,304 @@ function DirectionsCard({ steps, exitName }) {
 }
 
 
+// Visual 2D map of the floor
+function FloorMap({ incidentData }) {
+  const canvasRef = useRef(null)
+  const [pulse, setPulse] = useState(0)
+  const { 
+    static_grid, grid_width, grid_height, 
+    guest_coord, exit_coord, path_update, 
+    blocked_nodes, all_pois 
+  } = incidentData
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPulse(p => (p + 1) % 100)
+    }, 50)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !static_grid || static_grid.length === 0) return
+    
+    const ctx = canvas.getContext('2d')
+    const cellSize = Math.min(
+      (window.innerWidth - 64) / grid_width,
+      300 / grid_height
+    )
+    
+    canvas.width = grid_width * cellSize
+    canvas.height = grid_height * cellSize
+    
+    // 1. Clear with Dark Theme background
+    ctx.fillStyle = '#0f172a'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    
+    // 2. Draw Static Grid
+    for (let y = 0; y < grid_height; y++) {
+      for (let x = 0; x < grid_width; x++) {
+        if (static_grid[y][x] === 1) {
+          ctx.fillStyle = '#1e293b' // Wall
+        } else {
+          ctx.fillStyle = '#1e293b22' // Subtle walkable area
+        }
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+        
+        ctx.strokeStyle = '#334155'
+        ctx.lineWidth = 0.5
+        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
+      }
+    }
+
+    // 3. Draw all POIs
+    if (all_pois && all_pois.length > 0) {
+      all_pois.forEach(poi => {
+        const px = poi.coord_x * cellSize
+        const py = poi.coord_y * cellSize
+        const isGuestRoom = guest_coord && poi.coord_x === guest_coord[0] && poi.coord_y === guest_coord[1]
+        const isTargetExit = exit_coord && poi.coord_x === exit_coord[0] && poi.coord_y === exit_coord[1]
+
+        if (poi.type === 'room') {
+          ctx.fillStyle = isGuestRoom ? '#3b82f633' : '#1e293b'
+          ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2)
+          
+          if (cellSize > 14) {
+            ctx.fillStyle = isGuestRoom ? '#60a5fa' : '#475569'
+            ctx.font = `500 ${cellSize * 0.35}px 'Inter', sans-serif`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(poi.name, px + cellSize/2, py + cellSize/2)
+          }
+        } 
+        else if (poi.type === 'medical') {
+          ctx.fillStyle = '#450a0a'
+          ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2)
+          ctx.fillStyle = '#ef4444'
+          ctx.font = `${cellSize * 0.6}px Arial`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText('➕', px + cellSize/2, py + cellSize/2)
+        }
+        else if ((poi.type === 'exit' || poi.type === 'stairwell') && !isTargetExit) {
+          ctx.fillStyle = '#064e3b'
+          ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2)
+          ctx.fillStyle = '#10b981'
+          ctx.font = `${cellSize * 0.6}px Arial`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(poi.type === 'stairwell' ? '🪜' : '🚪', px + cellSize/2, py + cellSize/2)
+        }
+      })
+    }
+    
+    // 4. Draw Evacuation Path with GLOW
+    if (path_update && path_update.length > 0) {
+      ctx.beginPath()
+      ctx.strokeStyle = '#22c55e'
+      ctx.lineWidth = cellSize * 0.35
+      ctx.lineJoin = 'round'
+      ctx.lineCap = 'round'
+      ctx.shadowBlur = 10
+      ctx.shadowColor = '#22c55e'
+      ctx.setLineDash([cellSize * 0.5, cellSize * 0.3])
+      
+      const startX = path_update[0][0] * cellSize + cellSize / 2
+      const startY = path_update[0][1] * cellSize + cellSize / 2
+      ctx.moveTo(startX, startY)
+      
+      for (let i = 1; i < path_update.length; i++) {
+        ctx.lineTo(path_update[i][0] * cellSize + cellSize / 2, path_update[i][1] * cellSize + cellSize / 2)
+      }
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.shadowBlur = 0 // Reset shadow
+    }
+    
+    // 5. Highlight Blocked Nodes
+    if (blocked_nodes && blocked_nodes.length > 0) {
+      blocked_nodes.forEach(node => {
+        const nx = Array.isArray(node) ? node[0] : node.x
+        const ny = Array.isArray(node) ? node[1] : node.y
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'
+        ctx.fillRect(nx * cellSize, ny * cellSize, cellSize, cellSize)
+        
+        ctx.strokeStyle = '#ef4444'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(nx * cellSize + 4, ny * cellSize + 4)
+        ctx.lineTo((nx + 1) * cellSize - 4, (ny + 1) * cellSize - 4)
+        ctx.moveTo((nx + 1) * cellSize - 4, ny * cellSize + 4)
+        ctx.lineTo(nx * cellSize + 4, (ny + 1) * cellSize - 4)
+        ctx.stroke()
+      })
+    }
+    
+    // 6. Draw Guest Icon (YOU) with pulsing ring
+    if (guest_coord) {
+      const gx = guest_coord[0] * cellSize + cellSize / 2
+      const gy = guest_coord[1] * cellSize + cellSize / 2
+      
+      // Pulse ring
+      const pulseSize = (pulse / 100) * cellSize * 2
+      ctx.strokeStyle = `rgba(59, 130, 246, ${1 - pulse / 100})`
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(gx, gy, pulseSize, 0, Math.PI * 2)
+      ctx.stroke()
+
+      ctx.fillStyle = '#3b82f6'
+      ctx.beginPath()
+      ctx.arc(gx, gy, cellSize * 0.45, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
+    
+    // 7. Highlight RECOMMENDED EXIT
+    if (exit_coord) {
+      const ex = exit_coord[0] * cellSize
+      const ey = exit_coord[1] * cellSize
+      
+      // Glow effect for target exit
+      ctx.shadowBlur = 15
+      ctx.shadowColor = '#22c55e'
+      ctx.fillStyle = '#22c55e'
+      ctx.fillRect(ex, ey, cellSize, cellSize)
+      ctx.shadowBlur = 0
+      
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = 2
+      ctx.strokeRect(ex, ey, cellSize, cellSize)
+      
+      ctx.fillStyle = '#fff'
+      ctx.font = `${cellSize * 0.7}px Arial`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('🏃', ex + cellSize / 2, ey + cellSize / 2)
+
+      // "Recommended" tag
+      ctx.fillStyle = '#22c55e'
+      ctx.font = `bold ${cellSize * 0.3}px 'Inter', sans-serif`
+      ctx.fillText('RECOMMENDED', ex + cellSize/2, ey + cellSize + 10)
+    }
+
+  }, [incidentData, pulse])
+
+  return (
+    <div style={{
+      margin: '0 16px 16px',
+      background: '#1e293b',
+      borderRadius: 16,
+      padding: '20px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      border: '1px solid rgba(255,255,255,0.1)'
+    }}>
+      <div style={{
+        width: '100%',
+        marginBottom: 16,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <h4 style={{ margin: 0, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>
+          Interactive Navigation Hub
+        </h4>
+        <div style={{ display: 'flex', gap: 16, fontSize: 10, fontWeight: 700 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#60a5fa' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 8px #3b82f6' }} /> YOU
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#4ade80' }}>
+            <div style={{ width: 8, height: 8, background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} /> RECOMMENDED EXIT
+          </div>
+        </div>
+      </div>
+      
+      <div style={{ 
+        width: '100%', 
+        overflow: 'auto', 
+        maxHeight: 400,
+        background: '#0f172a',
+        borderRadius: 12,
+        border: '1px solid #334155',
+        display: 'flex',
+        justifyContent: 'center',
+        padding: 12
+      }}>
+        <canvas ref={canvasRef} style={{ maxWidth: '100%', borderRadius: 4 }} />
+      </div>
+    </div>
+  )
+}
+
+// Medical emergency specific view
+function MedicalCard({ incidentData }) {
+  const staffNames = incidentData?.assigned_staff_names?.length > 0 
+    ? incidentData.assigned_staff_names.join(' and ') 
+    : 'Our staff';
+    
+  const exitName = incidentData?.exit_name || 'the nearest exit';
+  const isHighSeverity = incidentData?.severity === 'CRITICAL' || incidentData?.severity === 'HIGH';
+
+  return (
+    <div style={{
+      background: '#fff',
+      borderRadius: 14,
+      padding: '20px 16px',
+      margin: '0 16px 12px',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+      textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>⚕️</div>
+      <h3 style={{ margin: '0 0 8px 0', color: '#111', fontSize: 16, fontFamily: "'Inter', sans-serif" }}>
+        Help is on the way
+      </h3>
+      <p style={{ margin: '0 0 16px 0', color: '#4b5563', fontSize: 14, fontFamily: "'Inter', sans-serif" }}>
+        <strong>{staffNames}</strong> will be with you shortly{isHighSeverity ? ` to escort you safely to ${exitName}` : ''}.
+      </p>
+
+      {isHighSeverity && (
+        <div style={{
+          background: '#fef2f2',
+          border: '1px solid #fca5a5',
+          borderRadius: 8,
+          padding: '12px',
+          marginBottom: '16px',
+          color: '#991b1b',
+          fontSize: 13,
+          fontWeight: 600,
+          fontFamily: "'Inter', sans-serif",
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+        }}>
+          <span style={{ fontSize: 16 }}>🚑</span>
+          An ambulance has been dispatched to {exitName}.
+        </div>
+      )}
+
+      <div style={{
+        background: '#f8fafc',
+        borderRadius: 10,
+        padding: '16px',
+        border: '1px solid #e2e8f0',
+        textAlign: 'left'
+      }}>
+        <h4 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Important Tips:
+        </h4>
+        <ul style={{ margin: 0, padding: '0 0 0 20px', color: '#334155', fontSize: 13, lineHeight: 1.5, fontFamily: "'Inter', sans-serif" }}>
+          <li style={{ marginBottom: 6 }}>Please stay exactly where you are.</li>
+          <li style={{ marginBottom: 6 }}>Try to remain calm and take deep breaths.</li>
+          <li style={{ marginBottom: 0 }}>Unlock and open your door so our team can enter quickly.</li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 export function AlertBanner({ incident, onDismiss }) {
   const [minimised, setMinimised] = useState(false)
 
@@ -225,6 +523,8 @@ export function AlertBanner({ incident, onDismiss }) {
   const sevColor = SEV_COLOR[incident.severity] || '#dc2626'
   const steps    = parseSteps(incident.steps)
   const exitName = incident.exit_name || 'EXIT A'
+  const isMedical = incident.incident_type === 'medical'
+  const isHighSeverity = incident.severity === 'CRITICAL' || incident.severity === 'HIGH'
 
   if (minimised) {
     return (
@@ -254,7 +554,7 @@ export function AlertBanner({ incident, onDismiss }) {
   }
 
   return (
-    <div style={{ background: '#f8fafc', overflowY: 'auto', maxHeight: '65vh' }}>
+    <div style={{ background: '#f1f5f9', overflowY: 'auto', maxHeight: '85vh' }}>
       {/* Red emergency header */}
       <div style={{
         background: `linear-gradient(135deg, ${sevColor} 0%, #b91c1c 100%)`,
@@ -264,7 +564,7 @@ export function AlertBanner({ incident, onDismiss }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: 0.5, lineHeight: 1.3 }}>
-              🚨 EMERGENCY — EVACUATION IN PROGRESS
+              {isMedical ? '🚨 MEDICAL EMERGENCY' : '🚨 EMERGENCY — EVACUATION IN PROGRESS'}
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', marginTop: 3 }}>
               {incident.incident_type?.charAt(0).toUpperCase() + (incident.incident_type?.slice(1) || '')} detected
@@ -284,10 +584,19 @@ export function AlertBanner({ incident, onDismiss }) {
         </div>
       </div>
 
-      {/* Floor corridor + path diagram */}
+      {/* Dynamic Content: Text on Top, Map at Bottom */}
       <div style={{ paddingTop: 12 }}>
-        <CorridorView incidentData={incident} roomName={incident.room_name} />
-        <DirectionsCard steps={steps} exitName={exitName} />
+        {isMedical ? (
+          <>
+            <MedicalCard incidentData={incident} />
+            {isHighSeverity && <FloorMap incidentData={incident} />}
+          </>
+        ) : (
+          <>
+            <DirectionsCard steps={steps} exitName={exitName} />
+            <FloorMap incidentData={incident} />
+          </>
+        )}
       </div>
 
       <style>{`@keyframes alert-pulse { 0%,100%{opacity:1} 50%{opacity:.85} }`}</style>

@@ -94,9 +94,39 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
     evac_path     = [Coord(x=c[0], y=c[1]) for c in path]
     blocked_nodes = []
 
-    # ── On-duty staff on this floor+block ────────────────────────
-    staff_on_floor = await get_staff_on_floor(nlp.floor_id, nlp.block_id)
-    staff_ids = [s["id"] for s in staff_on_floor]
+    # ── On-duty staff for this incident ──────────────────────────
+    all_staff = await get_on_duty_staff(nlp.venue_id)
+    block_staff = [
+        s for s in all_staff 
+        if s.get("current_block_id") == nlp.block_id or s.get("block_id") == nlp.block_id
+    ]
+    # Include staff assigned to this specific floor, or staff covering the whole block (no specific floor)
+    available_staff = [
+        s for s in block_staff 
+        if s.get("current_floor_id") == nlp.floor_id or not s.get("current_floor_id")
+    ]
+    
+    assigned_staff = []
+    if nlp.threat_type == "medical":
+        medical_staff = [s for s in available_staff if s.get("role") == "medical"]
+        if nlp.severity in ("CRITICAL", "HIGH"):
+            wardens = [s for s in available_staff if s.get("role") == "warden"]
+            assigned_staff = medical_staff + wardens
+        else:
+            assigned_staff = medical_staff[:1] # Just one medical person for minor injuries
+    else:
+        security_staff = [s for s in available_staff if s.get("role") == "security"]
+        wardens = [s for s in available_staff if s.get("role") == "warden"]
+        if nlp.severity in ("CRITICAL", "HIGH"):
+            assigned_staff = security_staff + wardens
+        else:
+            assigned_staff = wardens[:1] if wardens else security_staff[:1]
+            
+    if not assigned_staff:
+        assigned_staff = available_staff[:1]
+
+    staff_ids = [s["id"] for s in assigned_staff]
+    assigned_staff_names = [s.get("name", "Emergency Responder") for s in assigned_staff]
 
     full_location = f"Block {block['block_code']}, {nlp.room_number}, Floor {floor['level']}"
 
@@ -160,6 +190,12 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
         evacuation_path    = evac_path,
         blocked_nodes      = blocked_nodes,
         staff_on_floor     = staff_ids,
+        assigned_staff_names = assigned_staff_names,
+        static_grid        = floor["static_grid"],
+        grid_width         = floor["grid_width"],
+        grid_height        = floor["grid_height"],
+        guest_coord        = Coord(x=guest_x, y=guest_y),
+        all_pois           = all_pois,
         session_id         = nlp.session_id,
         venue_id           = nlp.venue_id,
         message_id         = nlp.message_id,
