@@ -512,6 +512,18 @@
             metalness: 0.1
         });
 
+        const corridorMat = new THREE.MeshStandardMaterial({
+            color: 0x064e3b, // dark green
+            roughness: 0.9,
+            metalness: 0.1
+        });
+
+        const exitMat = new THREE.MeshStandardMaterial({
+            color: 0x10b981, // bright green
+            roughness: 0.6,
+            metalness: 0.2
+        });
+
         const interactableRooms = [];
         const incidentMarkers = [];
         const incidentLights = [];
@@ -519,7 +531,7 @@
         // Build Stairs Geometry at the back of the corridor
         const stairW = corridorW - 1;
         const stairD = 6;
-        const stairMat = new THREE.MeshStandardMaterial({ color: 0x2a2a35, roughness: 0.8 });
+        const stairMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.7 }); // orange
 
         for (let f = 0; f < floors; f++) {
             const floorY = f * roomH;
@@ -534,6 +546,13 @@
             slab.castShadow = true;
             buildingGroup.add(slab);
 
+            // Corridor Floor
+            const corridorGeo = new THREE.BoxGeometry(6.5, 0.42, bDepth);
+            const corridorMesh = new THREE.Mesh(corridorGeo, corridorMat);
+            corridorMesh.position.set(5.25, floorY, 0);
+            corridorMesh.receiveShadow = true;
+            buildingGroup.add(corridorMesh);
+
             // Add Stairs (except for top floor going nowhere)
             if (f < floors - 1) {
                 const stepsCount = 12;
@@ -544,11 +563,47 @@
                 for(let s = 0; s < stepsCount; s++) {
                     const stepGeo = new THREE.BoxGeometry(stairW, stepH, stepD);
                     const stepMesh = new THREE.Mesh(stepGeo, stairMat);
-                    stepMesh.position.set(0, floorY + (s * stepH) + stepH/2, zOffset - (s * stepD));
+                    stepMesh.position.set(5.25, floorY + (s * stepH) + stepH/2, zOffset - (s * stepD));
                     stepMesh.castShadow = true;
                     stepMesh.receiveShadow = true;
                     buildingGroup.add(stepMesh);
                 }
+            }
+
+            // Add Exits on Ground Floor
+            if (f === 0) {
+                const exitGeo = new THREE.BoxGeometry(5.5, roomH - 1, 1);
+                
+                // Front Exit
+                const exitFront = new THREE.Mesh(exitGeo, exitMat);
+                exitFront.position.set(5.25, floorY + roomH/2 - 0.5, -bDepth/2 + 0.5);
+                buildingGroup.add(exitFront);
+
+                // Exit Label Generator
+                const exitLabelGeo = new THREE.PlaneGeometry(3, 1);
+                const exitLabelCanvas = document.createElement('canvas');
+                exitLabelCanvas.width = 128; exitLabelCanvas.height = 64;
+                const ctx = exitLabelCanvas.getContext('2d');
+                ctx.fillStyle = '#10b981'; ctx.fillRect(0,0,128,64);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 32px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                ctx.fillText('EXIT', 64, 32);
+                const exitLabelTexture = new THREE.CanvasTexture(exitLabelCanvas);
+                exitLabelTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                const exitLabelMat = new THREE.MeshBasicMaterial({ map: exitLabelTexture, transparent: true });
+
+                const exitFrontLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitFrontLabel.position.set(5.25, floorY + roomH + 0.1, -bDepth/2 + 1);
+                buildingGroup.add(exitFrontLabel);
+                
+                // Back Exit
+                const exitBack = new THREE.Mesh(exitGeo, exitMat);
+                exitBack.position.set(5.25, floorY + roomH/2 - 0.5, bDepth/2 - 0.5);
+                buildingGroup.add(exitBack);
+                
+                const exitBackLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitBackLabel.position.set(5.25, floorY + roomH + 0.1, bDepth/2 - 1);
+                exitBackLabel.rotation.y = Math.PI;
+                buildingGroup.add(exitBackLabel);
             }
 
             // Rooms
