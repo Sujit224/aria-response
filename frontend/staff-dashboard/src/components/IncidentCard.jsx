@@ -21,16 +21,19 @@ export function IncidentCard({ incident, selected, onSelect }) {
     <div
       onClick={() => onSelect(incident)}
       style={{
-        background:   selected ? colors.bg : T.bgCard,
-        border:       `0.5px solid ${selected ? colors.border : 'rgba(59,130,246,0.12)'}`,
-        borderRadius: 10,
-        padding:      '12px 14px',
+        background:   selected ? colors.bg : 'rgba(255, 255, 255, 0.02)',
+        border:       `1px solid ${selected ? colors.border : 'rgba(255,255,255,0.05)'}`,
+        borderRadius: 12,
+        padding:      '16px',
         cursor:       'pointer',
-        transition:   'all .15s',
-        marginBottom: 6,
+        transition:   'all .2s ease',
+        marginBottom: 8,
         position:     'relative',
         fontFamily:   T.sans,
+        boxShadow:    selected ? `0 0 20px ${colors.border}22` : 'none',
       }}
+      onMouseOver={e => { if (!selected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)' }}
+      onMouseOut={e => { if (!selected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)' }}
     >
       {/* Severity badge + time */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>

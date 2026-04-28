@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { Dashboard } from './pages/Dashboard'
+import { QRGenerator } from './pages/QRGenerator'
 
 const style = document.createElement('style')
 style.textContent = `
@@ -15,8 +16,17 @@ style.textContent = `
 `
 document.head.appendChild(style)
 
+function App() {
+  const [page, setPage] = useState('dashboard')
+
+  if (page === 'qr') {
+    return <QRGenerator onBack={() => setPage('dashboard')} />
+  }
+  return <Dashboard onGoQR={() => setPage('qr')} />
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Dashboard />
+    <App />
   </React.StrictMode>
 )

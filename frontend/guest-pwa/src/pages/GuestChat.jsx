@@ -251,8 +251,8 @@ export function GuestChat() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      height: '100dvh', background: '#050a0f',
-      color: '#e2f0ff', overflow: 'hidden',
+      height: '100dvh', background: '#020617', // tailwind slate-950
+      color: '#f8fafc', overflow: 'hidden',
     }}>
       {/* Top bar */}
       <StatusBar
