@@ -34,13 +34,7 @@ export function useStaffSocket({
     if (wsRef.current) {
       wsRef.current.onclose = null
       wsRef.current.onerror = null
-      if (wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close()
-      } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
-        wsRef.current.onopen = () => {
-          if (wsRef.current) wsRef.current.close()
-        }
-      }
+      wsRef.current.close()
     }
 
     const ws = new WebSocket(`${WS_BASE}/ws/aria/${venueId}/${sessionId}`)
@@ -85,14 +79,7 @@ export function useStaffSocket({
       if (wsRef.current) {
         wsRef.current.onclose = null
         wsRef.current.onerror = null
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.close()
-        } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
-          // Prevent the "closed before established" warning by waiting for open to close it
-          wsRef.current.onopen = () => {
-            if (wsRef.current) wsRef.current.close()
-          }
-        }
+        wsRef.current.close()
       }
     }
   }, [connect])

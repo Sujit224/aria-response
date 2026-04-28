@@ -31,7 +31,8 @@ async def ack_watchdog():
             now  = datetime.utcnow()
 
             for row in rows:
-                sent_at = datetime.fromisoformat(row["sent_at"])
+                last_reminded = row.get("last_reminded_at", row["sent_at"])
+                sent_at = datetime.fromisoformat(last_reminded)
                 if (now - sent_at).total_seconds() < ACK_TIMEOUT:
                     continue
 
@@ -40,6 +41,14 @@ async def ack_watchdog():
                     f"[ARIA-WATCHDOG] Re-alerting staff {row['staff_id'][:8]} "
                     f"for incident {row['incident_id'][:8]} (pending >{ACK_TIMEOUT}s)"
                 )
+
+                # Update the dispatch so we wait another ACK_TIMEOUT before alerting again
+                from app.db.firebase import get_db
+                from app.db.collections import _run
+                db = get_db()
+                await _run(lambda r=row, n=now: db.collection("dispatches").document(r["id"]).update({
+                    "last_reminded_at": n.isoformat()
+                }))
 
                 await publish_staff_event(
                     hotel_id,

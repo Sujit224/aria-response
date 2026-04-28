@@ -35,7 +35,8 @@ export function Dashboard({ onGoQR }) {
   async function fetchIncidents() {
     try {
       const data = await getActiveIncidents(VENUE_ID)
-      setIncidents(data)
+      // Normalize 'id' to 'incident_id' for consistency with WebSocket events
+      setIncidents(data.map(i => ({ ...i, incident_id: i.incident_id || i.id })))
     } catch (e) {
       console.error('[ARIA] Fetch incidents failed:', e)
     } finally {
