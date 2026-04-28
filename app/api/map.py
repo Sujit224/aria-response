@@ -12,19 +12,19 @@ router = APIRouter(prefix="/map", tags=["map"])
 async def list_all_pois(type: str = Query(None), limit: int = Query(200)):
     """
     Returns all POIs, optionally filtered by type (e.g. 'room').
-    Used by the Guest PWA to auto-assign a test room when none is set.
+    MOCKED for hackathon to avoid Firestore quota limits.
     """
-    db = get_db()
-    loop = __import__('asyncio').get_event_loop()
-
-    def _fetch():
-        q = db.collection("pois")
-        if type:
-            q = q.where("type", "==", type)
-        return list(q.limit(limit).stream())
-
-    docs = await loop.run_in_executor(None, _fetch)
-    return [d.to_dict() for d in docs]
+    import json
+    try:
+        with open("scripts/hotel_seed.json", "r") as f:
+            data = json.load(f)
+            pois = data.get("pois", [])
+            if type:
+                pois = [p for p in pois if p.get("type") == type]
+            return pois[:limit]
+    except Exception as e:
+        print(f"Error reading local POIs: {e}")
+        return []
 
 
 @router.get("/floor/{floor_id}")

@@ -3,6 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +26,9 @@ _watchdog_task:  asyncio.Task  | None = None
 async def lifespan(app: FastAPI):
     global _camera_manager, _watchdog_task
 
-    # 1 — Initialise Firebase (Firestore + FCM)
+    # 1 — Initialise Firebase (Firestore + FCM) & ThreadPool
+    loop = asyncio.get_event_loop()
+    loop.set_default_executor(ThreadPoolExecutor(max_workers=50))
     firebase.initialize()
     print("[ARIA] Firebase ready")
 

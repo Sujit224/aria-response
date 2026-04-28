@@ -18,22 +18,28 @@ function GridModel({ incidentData }) {
 
   // 1. Generate walls
   const walls = []
-  for (let y = 0; y < grid_height; y++) {
-    for (let x = 0; x < grid_width; x++) {
-      if (static_grid[y][x] === 1) {
-        walls.push({ x: x + offsetX + 0.5, z: y + offsetZ + 0.5 })
+  if (Array.isArray(static_grid)) {
+    for (let y = 0; y < Math.min(grid_height, static_grid.length); y++) {
+      if (!Array.isArray(static_grid[y])) continue
+      for (let x = 0; x < Math.min(grid_width, static_grid[y].length); x++) {
+        if (static_grid[y][x] === 1) {
+          walls.push({ x: x + offsetX + 0.5, z: y + offsetZ + 0.5 })
+        }
       }
     }
   }
 
   // 2. Generate Evacuation Path Points
   const pathPoints = useMemo(() => {
-    if (!path_update) return []
-    return path_update.map(p => new THREE.Vector3(
-      p[0] + offsetX + 0.5,
-      0.1,
-      p[1] + offsetZ + 0.5
-    ))
+    if (!Array.isArray(path_update)) return []
+    return path_update.map(p => {
+      if (!Array.isArray(p) || p.length < 2) return null
+      return new THREE.Vector3(
+        p[0] + offsetX + 0.5,
+        0.1,
+        p[1] + offsetZ + 0.5
+      )
+    }).filter(p => p !== null)
   }, [path_update, offsetX, offsetZ])
 
   // Material configs
@@ -82,7 +88,6 @@ function GridModel({ incidentData }) {
                 color={isGuestRoom ? '#93c5fd' : '#94a3b8'}
                 anchorX="center"
                 anchorY="middle"
-                font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
               >
                 {poi.name}
               </Text>

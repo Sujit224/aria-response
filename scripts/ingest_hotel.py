@@ -1,92 +1,81 @@
 """
 Usage:
-    python scripts/ingest_hotel.py --file scripts/sample_hotel.json
+    python scripts/ingest_hotel.py --file scripts/hotel_seed.json
 
-Seeds Firestore with the hotel structure from a JSON floor plan file.
+Seeds Firestore with the hotel structure from a flattened JSON seed file.
 Run once after setting up FIREBASE_CREDENTIALS_PATH in .env.
 The script prints the hotel_id — set it as VENUE_ID in .env.
 """
 import asyncio
 import argparse
 import json
-import sys
 import os
+import sys
 
+# Add project root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
 load_dotenv()
 
 import app.db.firebase as firebase
-from app.db.collections import (
-    save_hotel, save_block, save_floor, save_poi, save_camera,
-)
+from app.db.collections import _flatten_arrays, _now
 
+async def ingest_item(item):
+    db = firebase.get_db()
+    collection = item["collection"]
+    doc_id = item["doc_id"]
+    data = item["data"]
+    
+    # Add timestamps if not present
+    if "created_at" not in data:
+        data["created_at"] = _now()
+    data["updated_at"] = _now()
+    
+    print(f"  [+] Saving {collection}/{doc_id}...")
+    
+    # Run sync Firestore call in executor
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, lambda: db.collection(collection).document(doc_id).set(_flatten_arrays(data)))
 
 async def ingest(filepath: str):
-    with open(filepath) as f:
-        data = json.load(f)
-
     firebase.initialize()
+    
+    if not os.path.exists(filepath):
+        print(f"[!] Seed file not found: {filepath}")
+        return
 
-    # ── Hotel ────────────────────────────────────────────────
-    hotel_id = await save_hotel(
-        name    = data["hotel"]["name"],
-        address = data["hotel"]["address"],
-    )
-    print(f"[+] Hotel: {data['hotel']['name']} ({hotel_id})")
+    with open(filepath, "r") as f:
+        seed_data = json.load(f)
 
-    # ── Blocks ───────────────────────────────────────────────
-    block_map = {}
-    for b in data["blocks"]:
-        block_id = await save_block(hotel_id, b["name"], b["block_code"])
-        block_map[b["block_code"]] = block_id
-        print(f"  [+] Block {b['block_code']}: {b['name']} ({block_id})")
+    print(f"[+] Ingesting Hotel: {seed_data['hotel']['data']['name']}")
+    await ingest_item(seed_data["hotel"])
 
-    # ── Floors, POIs, Cameras ────────────────────────────────
-    for block_entry in data.get("floors_per_block", []):
-        block_id = block_map[block_entry["block_code"]]
+    print(f"[+] Ingesting {len(seed_data['blocks'])} Blocks...")
+    for block in seed_data["blocks"]:
+        await ingest_item(block)
 
-        for floor_data in block_entry["floors"]:
-            floor_id = await save_floor(
-                block_id    = block_id,
-                level       = floor_data["level"],
-                grid_width  = floor_data["grid_width"],
-                grid_height = floor_data["grid_height"],
-                static_grid = floor_data["static_grid"],
-            )
-            print(f"    [+] Floor {floor_data['level']} ({floor_id})")
+    print(f"[+] Ingesting {len(seed_data['floors'])} Floors...")
+    for floor in seed_data["floors"]:
+        await ingest_item(floor)
 
-            for p in floor_data.get("pois", []):
-                await save_poi(
-                    floor_id     = floor_id,
-                    name         = p["name"],
-                    type_        = p["type"],
-                    coord_x      = p["coord_x"],
-                    coord_y      = p["coord_y"],
-                    is_safe_exit = p.get("is_safe_exit", False),
-                )
-            print(f"      [+] {len(floor_data.get('pois', []))} POIs")
+    print(f"[+] Ingesting {len(seed_data['pois'])} POIs...")
+    # Ingest POIs in chunks to avoid overwhelming the connection
+    chunk_size = 50
+    for i in range(0, len(seed_data["pois"]), chunk_size):
+        chunk = seed_data["pois"][i:i + chunk_size]
+        tasks = [ingest_item(poi) for poi in chunk]
+        await asyncio.gather(*tasks)
 
-            for c in floor_data.get("cameras", []):
-                await save_camera(
-                    block_id       = block_id,
-                    floor_id       = floor_id,
-                    coord_x        = c["coord_x"],
-                    coord_y        = c["coord_y"],
-                    stream_url     = c["stream_url"],
-                    coverage_zones = c.get("coverage_zones", []),
-                )
-            print(f"      [+] {len(floor_data.get('cameras', []))} cameras")
-
-    print(f"\n[OK] Hotel '{data['hotel']['name']}' written to Firestore.")
-    print(f"    hotel_id = {hotel_id}")
+    hotel_id = seed_data['hotel']['doc_id']
+    print(f"\n[OK] Ingestion complete.")
+    print(f"Hotel ID: {hotel_id}")
     print(f"\n    --> Add this to your .env:")
     print(f"       VENUE_ID={hotel_id}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file", default="scripts/sample_hotel.json")
+    parser.add_argument("--file", default="scripts/hotel_seed.json")
     args = parser.parse_args()
     asyncio.run(ingest(args.file))

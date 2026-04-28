@@ -24,12 +24,15 @@ class CameraManager:
         """
         db = get_db()
         loop = asyncio.get_event_loop()
-        docs = await loop.run_in_executor(None, lambda: list(
-            db.collection("cameras").where("active", "==", True).stream()
-        ))
-
-        cameras = [d.to_dict() for d in docs]
-        print(f"[VISION] Starting {len(cameras)} camera workers for venue {self.venue_id}")
+        try:
+            docs = await loop.run_in_executor(None, lambda: list(
+                db.collection("cameras").where("active", "==", True).stream()
+            ))
+            cameras = [d.to_dict() for d in docs]
+            print(f"[VISION] Starting {len(cameras)} camera workers for venue {self.venue_id}")
+        except Exception as e:
+            print(f"[VISION] Failed to load cameras from Firestore: {e}")
+            cameras = []
 
         for cam in cameras:
             worker = CameraWorker(

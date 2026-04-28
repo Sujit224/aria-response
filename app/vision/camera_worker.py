@@ -69,7 +69,8 @@ class CameraWorker:
         """Start the inference loop in the thread pool executor."""
         self._stop.clear()
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._run_sync)
+        # Fire and forget into the executor pool
+        loop.run_in_executor(None, self._run_sync)
 
     def _run_sync(self):
         """Blocking loop — runs in thread pool executor."""
