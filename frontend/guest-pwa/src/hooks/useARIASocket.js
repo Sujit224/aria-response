@@ -49,13 +49,14 @@ export function useARIASocket({
   const connect = useCallback(() => {
     if (!venueId || !sessionId) return
     if (wsRef.current) {
-      wsRef.current.onclose = null
-      wsRef.current.onerror = null
-      if (wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close()
-      } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
-        wsRef.current.onopen = () => {
-          if (wsRef.current) wsRef.current.close()
+      const oldWs = wsRef.current
+      oldWs.onclose = null
+      oldWs.onerror = null
+      if (oldWs.readyState === WebSocket.OPEN) {
+        oldWs.close()
+      } else if (oldWs.readyState === WebSocket.CONNECTING) {
+        oldWs.onopen = () => {
+          oldWs.close()
         }
       }
     }
@@ -116,14 +117,15 @@ export function useARIASocket({
       clearTimeout(timerRef.current)
       clearInterval(keepAliveRef.current)
       if (wsRef.current) {
-        wsRef.current.onclose = null
-        wsRef.current.onerror = null
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.close()
-        } else if (wsRef.current.readyState === WebSocket.CONNECTING) {
+        const oldWs = wsRef.current
+        oldWs.onclose = null
+        oldWs.onerror = null
+        if (oldWs.readyState === WebSocket.OPEN) {
+          oldWs.close()
+        } else if (oldWs.readyState === WebSocket.CONNECTING) {
           // Prevent the "closed before established" warning by waiting for open to close it
-          wsRef.current.onopen = () => {
-            if (wsRef.current) wsRef.current.close()
+          oldWs.onopen = () => {
+            oldWs.close()
           }
         }
       }

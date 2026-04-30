@@ -68,7 +68,7 @@ def make_pois(block_code, floor_level, floor_id, front_exit_cols, back_exit_cols
 
     # Front rooms (rows 1-3 → centre y=2)
     for i, rc in enumerate(room_cols):
-        rnum = f"{block_code}{floor_level}{str(i+1).zfill(2)}"
+        rnum = f"{floor_level}{str(i+1).zfill(2)}"
         pois.append({
             "id":           str(uuid.uuid4()),
             "floor_id":     floor_id,
@@ -81,7 +81,7 @@ def make_pois(block_code, floor_level, floor_id, front_exit_cols, back_exit_cols
 
     # Back rooms (rows 8-10 → centre y=9)
     for i, rc in enumerate(room_cols):
-        rnum = f"{block_code}{floor_level}{str(i+11).zfill(2)}"
+        rnum = f"{floor_level}{str(i+11).zfill(2)}"
         pois.append({
             "id":           str(uuid.uuid4()),
             "floor_id":     floor_id,

@@ -46,24 +46,16 @@ class CameraWorker:
 
     def __init__(
         self,
-        camera_id:  str,
-        stream_url: str,
-        venue_id:   str,
-        model_path: str = "yolov8n.pt",
+        camera_id:    str,
+        stream_url:   str,
+        venue_id:     str,
+        shared_model  = None,   # Pre-loaded YOLO model (injected by CameraManager)
     ):
-        self.camera_id  = camera_id
-        self.stream_url = stream_url
-        self.venue_id   = venue_id
-        self.model_path = model_path
-        self._stop      = asyncio.Event()
-        self._model     = None
-
-    def _load_model(self):
-        if not _yolo_available:
-            return None
-        model = YOLO(self.model_path)
-        model.fuse()   # optimise inference speed
-        return model
+        self.camera_id    = camera_id
+        self.stream_url   = stream_url
+        self.venue_id     = venue_id
+        self._model       = shared_model
+        self._stop        = asyncio.Event()
 
     async def start(self):
         """Start the inference loop in the thread pool executor."""
@@ -77,11 +69,16 @@ class CameraWorker:
         if not _cv2_available or not _yolo_available:
             print(f"[VISION] {self.camera_id[:8]}: running in NO-OP stub mode (cv2/yolo missing)")
             return
+        if self._model is None:
+            print(f"[VISION] {self.camera_id[:8]}: no model available — skipping")
+            return
 
-        self._model = self._load_model()
-        cap = cv2.VideoCapture(self.stream_url)
+        # Firestore stores stream_url as a string.
+        # "0", "1", etc. → integer device index for cv2.VideoCapture (webcam).
+        source = int(self.stream_url) if self.stream_url.isdigit() else self.stream_url
+        cap = cv2.VideoCapture(source)
         if not cap.isOpened():
-            print(f"[VISION] Cannot open stream: {self.stream_url}")
+            print(f"[VISION] Stream unavailable (RTSP offline?): {self.stream_url}")
             return
 
         frame_count = 0

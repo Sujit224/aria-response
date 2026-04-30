@@ -16,7 +16,7 @@ async def list_all_pois(type: str = Query(None), limit: int = Query(200)):
     """
     import json
     try:
-        with open("scripts/hotel_seed.json", "r") as f:
+        with open("scripts/hotel_seed_firebase.json", "r") as f:
             data = json.load(f)
             pois = data.get("pois", [])
             if type:
