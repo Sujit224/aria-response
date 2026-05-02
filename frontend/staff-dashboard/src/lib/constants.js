@@ -30,11 +30,11 @@ export const ACK_COLOR = {
 
 // CSS-in-JS base tokens
 export const T = {
-  bg:        '#020617', // tailwind slate-950
-  bgCard:    '#0f172a', // tailwind slate-900
-  bgPanel:   '#1e293b', // tailwind slate-800
-  border:    '#1e293b',
-  borderHi:  '#334155',
+  bg:        '#0f172a', // Slightly brighter slate-900
+  bgCard:    '#1e293b', // slate-800
+  bgPanel:   '#334155', // slate-700
+  border:    '#334155',
+  borderHi:  '#475569',
   text:      '#f8fafc',
   textSub:   '#cbd5e1',
   textDim:   '#64748b',

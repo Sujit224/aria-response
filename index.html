@@ -262,6 +262,47 @@
             margin-bottom: 20px;
         }
 
+        .floor-selector {
+            position: absolute;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            z-index: 20;
+        }
+
+        .floor-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .floor-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .floor-btn.active {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px var(--accent-red-glow);
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -311,6 +352,17 @@
             <div class="control-item">
                 <span class="key">Scroll</span> Zoom
             </div>
+        </div>
+
+        <!-- Floor Selector -->
+        <div class="floor-selector glass-panel" id="floor-selector">
+            <div class="floor-btn active" data-floor="all">ALL</div>
+            <div class="floor-btn" data-floor="5">F6</div>
+            <div class="floor-btn" data-floor="4">F5</div>
+            <div class="floor-btn" data-floor="3">F4</div>
+            <div class="floor-btn" data-floor="2">F3</div>
+            <div class="floor-btn" data-floor="1">F2</div>
+            <div class="floor-btn" data-floor="0">F1</div>
         </div>
     </div>
 
@@ -428,7 +480,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
         container.appendChild(renderer.domElement);
@@ -485,6 +537,14 @@
         scene.add(buildingGroup);
 
         const floors = 6;
+        const floorGroups = [];
+        for (let f = 0; f < floors; f++) {
+            const group = new THREE.Group();
+            group.userData = { floor: f };
+            buildingGroup.add(group);
+            floorGroups.push(group);
+        }
+
         const roomsX = 2; // Two rows of rooms with corridor in between
         const roomsZ = 11; // 10 actual rooms per side + 1 cross corridor = 20 rooms per floor
         
@@ -544,14 +604,14 @@
             slab.position.set(0, floorY, 0);
             slab.receiveShadow = true;
             slab.castShadow = true;
-            buildingGroup.add(slab);
+            floorGroups[f].add(slab);
 
             // Main Corridor Floor (Z-axis length)
             const corridorGeo = new THREE.BoxGeometry(corridorW, 0.42, bDepth);
             const corridorMesh = new THREE.Mesh(corridorGeo, corridorMat);
             corridorMesh.position.set(0, floorY, 0);
             corridorMesh.receiveShadow = true;
-            buildingGroup.add(corridorMesh);
+            floorGroups[f].add(corridorMesh);
 
             // Cross Corridor Floor (X-axis width at z=5)
             const crossCorridorGeo = new THREE.BoxGeometry(bWidth, 0.42, roomD + gap);
@@ -559,7 +619,7 @@
             const crossOffsetZ = (5 - (roomsZ - 1) / 2) * (roomD + gap);
             crossCorridorMesh.position.set(0, floorY, crossOffsetZ);
             crossCorridorMesh.receiveShadow = true;
-            buildingGroup.add(crossCorridorMesh);
+            floorGroups[f].add(crossCorridorMesh);
 
             // Add Stairs (3 distributed locations: front, middle, back)
             if (f < floors - 1) {
@@ -581,7 +641,7 @@
                         stepMesh.position.set(0, floorY + (s * stepH) + stepH/2, zOffset - (s * stepD) + stairD/2);
                         stepMesh.castShadow = true;
                         stepMesh.receiveShadow = true;
-                        buildingGroup.add(stepMesh);
+                        floorGroups[f].add(stepMesh);
                     }
                 });
             }
@@ -605,38 +665,38 @@
                 // 1. Front Main Exit
                 const exitFront = new THREE.Mesh(exitGeo, exitMat);
                 exitFront.position.set(0, floorY + roomH/2 - 0.5, -bDepth/2 + 0.5);
-                buildingGroup.add(exitFront);
+                floorGroups[f].add(exitFront);
                 const exitFrontLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
                 exitFrontLabel.position.set(0, floorY + roomH + 0.1, -bDepth/2 + 1);
-                buildingGroup.add(exitFrontLabel);
+                floorGroups[f].add(exitFrontLabel);
                 
                 // 2. Back Main Exit
                 const exitBack = new THREE.Mesh(exitGeo, exitMat);
                 exitBack.position.set(0, floorY + roomH/2 - 0.5, bDepth/2 - 0.5);
-                buildingGroup.add(exitBack);
+                floorGroups[f].add(exitBack);
                 const exitBackLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
                 exitBackLabel.position.set(0, floorY + roomH + 0.1, bDepth/2 - 1);
                 exitBackLabel.rotation.y = Math.PI;
-                buildingGroup.add(exitBackLabel);
+                floorGroups[f].add(exitBackLabel);
 
                 // 3. Left Cross-Corridor Exit
                 const exitSideGeo = new THREE.BoxGeometry(1, roomH - 1, roomD - 2);
                 const exitLeft = new THREE.Mesh(exitSideGeo, exitMat);
                 exitLeft.position.set(-bWidth/2 + 0.5, floorY + roomH/2 - 0.5, crossOffsetZ);
-                buildingGroup.add(exitLeft);
+                floorGroups[f].add(exitLeft);
                 const exitLeftLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
                 exitLeftLabel.position.set(-bWidth/2 + 1, floorY + roomH + 0.1, crossOffsetZ);
                 exitLeftLabel.rotation.y = Math.PI / 2;
-                buildingGroup.add(exitLeftLabel);
+                floorGroups[f].add(exitLeftLabel);
 
                 // 4. Right Cross-Corridor Exit
                 const exitRight = new THREE.Mesh(exitSideGeo, exitMat);
                 exitRight.position.set(bWidth/2 - 0.5, floorY + roomH/2 - 0.5, crossOffsetZ);
-                buildingGroup.add(exitRight);
+                floorGroups[f].add(exitRight);
                 const exitRightLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
                 exitRightLabel.position.set(bWidth/2 - 1, floorY + roomH + 0.1, crossOffsetZ);
                 exitRightLabel.rotation.y = -Math.PI / 2;
-                buildingGroup.add(exitRightLabel);
+                floorGroups[f].add(exitRightLabel);
             }
 
             // Rooms Generation (Left side 1-10, Right side 11-20)
@@ -745,7 +805,7 @@
                     };
 
                     interactableRooms.push(roomMesh);
-                    buildingGroup.add(roomMesh);
+                    floorGroups[f].add(roomMesh);
 
                     // Canvas Flat Label
                     const labelMesh = createTextPlane(fullName, isIncident, renderer);
@@ -765,12 +825,12 @@
                         ring.position.copy(roomMesh.position);
                         ring.position.y += roomH/2 + 0.5;
                         ring.userData = { baseY: ring.position.y };
-                        buildingGroup.add(ring);
+                        floorGroups[f].add(ring);
                         incidentMarkers.push(ring);
 
                         const pLight = new THREE.PointLight(0xff0033, 4, 25);
                         pLight.position.copy(roomMesh.position);
-                        buildingGroup.add(pLight);
+                        floorGroups[f].add(pLight);
                         incidentLights.push(pLight);
 
                         const beamMat = new THREE.MeshBasicMaterial({
@@ -784,7 +844,7 @@
                         const beam = new THREE.Mesh(beamGeo, beamMat);
                         beam.position.copy(roomMesh.position);
                         beam.position.y += 75;
-                        buildingGroup.add(beam);
+                        floorGroups[f].add(beam);
                     }
                 }
             }
@@ -801,6 +861,58 @@
         let isAnimatingCamera = false;
         let targetCameraPos = new THREE.Vector3();
         let targetControlsTarget = new THREE.Vector3();
+        let currentFloorFilter = 'all';
+
+        // Floor Visibility Logic
+        function updateFloorVisibility(floor) {
+            currentFloorFilter = floor;
+            
+            // Update UI
+            document.querySelectorAll('.floor-btn').forEach(btn => {
+                if (btn.dataset.floor === floor) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Update Scene
+            floorGroups.forEach((group, idx) => {
+                if (floor === 'all') {
+                    group.visible = true;
+                    // Reset opacity if we were doing ghosting (but here we just hide/show)
+                } else {
+                    group.visible = (idx === parseInt(floor));
+                }
+            });
+
+            // Adjust Camera if focusing on a floor
+            if (floor !== 'all') {
+                const fIdx = parseInt(floor);
+                const targetY = fIdx * roomH + (roomH / 2);
+                targetControlsTarget.set(0, targetY, 0);
+                
+                // Keep current horizontal angle but adjust height
+                const dist = controls.getDistance();
+                const polar = controls.getPolarAngle();
+                const azim = controls.getAzimuthalAngle();
+                
+                targetCameraPos.setFromSphericalCoords(dist, polar, azim);
+                targetCameraPos.add(targetControlsTarget);
+                
+                isAnimatingCamera = true;
+            } else {
+                // Reset to building center
+                targetControlsTarget.set(0, (floors * roomH) / 2, 0);
+                targetCameraPos.set(-120, 100, 150);
+                isAnimatingCamera = true;
+            }
+        }
+
+        // Add event listeners to floor buttons
+        document.getElementById('floor-selector').addEventListener('click', (e) => {
+            const btn = e.target.closest('.floor-btn');
+            if (btn) {
+                updateFloorVisibility(btn.dataset.floor);
+            }
+        });
 
         // Mouse Move for Raycasting
         window.addEventListener('mousemove', (e) => {
@@ -871,6 +983,11 @@
         });
 
         function focusOnIncident(inc) {
+            // Switch floor view if needed
+            if (currentFloorFilter !== 'all' && currentFloorFilter !== inc.floor.toString()) {
+                updateFloorVisibility(inc.floor.toString());
+            }
+
             const roomMesh = interactableRooms.find(r => 
                 r.userData.floor === inc.floor && 
                 r.userData.roomId === inc.roomId
@@ -906,6 +1023,8 @@
         }
 
         // --- 8. Animation Loop ---
+        // Use performance.now() or THREE.Timer for better results, 
+        // but for this legacy script we'll just keep the clock and handle the warning.
         const clock = new THREE.Clock();
 
         function animate() {

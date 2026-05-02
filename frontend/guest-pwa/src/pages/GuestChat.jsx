@@ -47,6 +47,21 @@ export function GuestChat() {
   const sessionId = getSessionId()
   const venueId   = getVenueId()
 
+  // ── Fetch room name if we have an ID but no name ───────────────
+  useEffect(() => {
+    if (roomId && (!roomName || roomName === 'Unknown Room' || roomName === 'Assigning room…')) {
+      fetch(`${API}/map/pois/${roomId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.name) {
+            setRoomNameState(data.name)
+            localStorage.setItem('aria_room_name', data.name)
+          }
+        })
+        .catch(err => console.warn('[ARIA] Failed to fetch room info:', err))
+    }
+  }, [roomId])
+
   // ── Auto-assign a random test room if none is set ───────────────
   useEffect(() => {
     if (roomId) return

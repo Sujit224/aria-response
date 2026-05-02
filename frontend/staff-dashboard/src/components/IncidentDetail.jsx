@@ -174,8 +174,7 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
                   all_pois: floorData.pois,
                   blocked_nodes: blockedNodes,
                   path_update: pathUpdate,
-                  // Guest coord and exit coord might be in incident data depending on the threat,
-                  // or derived. We'll leave them null if not explicitly set by the incident.
+                  origin_poi_id: incident.origin_poi_id,
                 }}
               />
             </Section>

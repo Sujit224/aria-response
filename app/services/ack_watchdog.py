@@ -4,24 +4,20 @@ from app.db.collections import get_pending_dispatches, publish_staff_event
 
 
 CHECK_INTERVAL = 15   # seconds
-ACK_TIMEOUT    = 60   # seconds before re-alerting
-
 
 async def ack_watchdog():
     """
     Runs as a background asyncio task for the lifetime of the FastAPI app.
-    Every CHECK_INTERVAL seconds:
-      - Queries Firestore dispatches where ack_status=PENDING
-      - For any dispatch older than ACK_TIMEOUT, re-publishes a DISPATCH_REMINDER
-        to the venue's staff_events channel (Firestore, picked up by WS handler)
     """
-    print("[ARIA-WATCHDOG] Started — checking every 15s for unacknowledged dispatches")
+    # Configurable limits
+    ACK_TIMEOUT_VAL    = 60   # Seconds before re-alerting
+    MAX_REMINDERS      = 5    # Stop re-alerting after this many attempts
+
+    print(f"[ARIA-WATCHDOG] Started — checking every {CHECK_INTERVAL}s for unacknowledged dispatches")
 
     while True:
         await asyncio.sleep(CHECK_INTERVAL)
         try:
-            # We don't have a hotel_id at this level, so query all hotels.
-            # In production, run one watchdog per active venue.
             import os
             hotel_id = os.getenv("VENUE_ID", "")
             if not hotel_id:
@@ -32,22 +28,32 @@ async def ack_watchdog():
 
             for row in rows:
                 last_reminded = row.get("last_reminded_at", row["sent_at"])
-                sent_at = datetime.fromisoformat(last_reminded)
-                if (now - sent_at).total_seconds() < ACK_TIMEOUT:
+                sent_at       = datetime.fromisoformat(last_reminded)
+                reminder_count = row.get("reminder_count", 0)
+
+                age = (now - sent_at).total_seconds()
+                if age < ACK_TIMEOUT_VAL:
+                    continue
+
+                if reminder_count >= MAX_REMINDERS:
+                    # Too many reminders, stop alerting for this one
                     continue
 
                 inc = row.get("_incident", {})
+                new_count = reminder_count + 1
+                
                 print(
                     f"[ARIA-WATCHDOG] Re-alerting staff {row['staff_id'][:8]} "
-                    f"for incident {row['incident_id'][:8]} (pending >{ACK_TIMEOUT}s)"
+                    f"for incident {row['incident_id'][:8]} (pending {int(age)}s, attempt {new_count})"
                 )
 
-                # Update the dispatch so we wait another ACK_TIMEOUT before alerting again
+                # Update the dispatch
                 from app.db.firebase import get_db
                 from app.db.collections import _run
                 db = get_db()
-                await _run(lambda r=row, n=now: db.collection("dispatches").document(r["id"]).update({
-                    "last_reminded_at": n.isoformat()
+                await _run(lambda r=row, n=now, c=new_count: db.collection("dispatches").document(r["id"]).update({
+                    "last_reminded_at": n.isoformat(),
+                    "reminder_count": c
                 }))
 
                 await publish_staff_event(
@@ -63,6 +69,7 @@ async def ack_watchdog():
                             "severity":      inc.get("severity", ""),
                             "pending_since": row["sent_at"],
                             "re_alert":      True,
+                            "attempt":       new_count
                         },
                     }
                 )
