@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    image: python:3.11-slim
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    # Install dependencies on startup and run uvicorn
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y libgl1 libglib2.0-0 &&
+        pip install --no-cache-dir -r requirements.txt &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+  guest-pwa:
+    image: node:20-alpine
+    working_dir: /workspace/frontend/guest-pwa
+    volumes:
+      - .:/workspace
+    # We install shared dependencies in the frontend root first, then run dev
+    command: >
+      sh -c "
+        cd /workspace/frontend && npm install &&
+        cd /workspace/frontend/guest-pwa && npm install &&
+        npm run dev -- --host 0.0.0.0
+      "
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  staff-dashboard:
+    image: node:20-alpine
+    working_dir: /workspace/frontend/staff-dashboard
+    volumes:
+      - .:/workspace
+    # We install shared dependencies in the frontend root first, then run dev
+    command: >
+      sh -c "
+        cd /workspace/frontend && npm install &&
+        cd /workspace/frontend/staff-dashboard && npm install &&
+        npm run dev -- --host 0.0.0.0
+      "
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend

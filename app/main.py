@@ -3,6 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +26,9 @@ _watchdog_task:  asyncio.Task  | None = None
 async def lifespan(app: FastAPI):
     global _camera_manager, _watchdog_task
 
-    # 1 — Initialise Firebase (Firestore + FCM)
+    # 1 — Initialise Firebase (Firestore + FCM) & ThreadPool
+    loop = asyncio.get_event_loop()
+    loop.set_default_executor(ThreadPoolExecutor(max_workers=50))
     firebase.initialize()
     print("[ARIA] Firebase ready")
 
@@ -33,11 +36,14 @@ async def lifespan(app: FastAPI):
     _watchdog_task = asyncio.create_task(ack_watchdog())
     print("[ARIA] Ack watchdog started")
 
-    # 3 — Start YOLO camera workers (only if VENUE_ID is set)
-    venue_id = os.getenv("VENUE_ID")
-    if venue_id:
+    # 3 — Start YOLO camera workers (only if VENUE_ID + VISION_ENABLED are set)
+    venue_id       = os.getenv("VENUE_ID")
+    vision_enabled = os.getenv("VISION_ENABLED", "false").lower() in ("1", "true", "yes")
+    if venue_id and vision_enabled:
         _camera_manager = CameraManager(venue_id=venue_id)
         await _camera_manager.start()
+    elif venue_id and not vision_enabled:
+        print("[ARIA] VISION_ENABLED=false — camera workers skipped (set VISION_ENABLED=true to activate)")
     else:
         print("[ARIA] VENUE_ID not set — camera workers skipped")
 

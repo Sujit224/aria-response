@@ -39,8 +39,15 @@ export function FloorMap({
   const cols = grid[0]?.length || 0
 
   // Build lookup sets for fast rendering
-  const blockedSet = new Set(blockedNodes.map(([x, y]) => `${x},${y}`))
-  const pathSet    = new Set(pathUpdate.map(([x, y]) => `${x},${y}`))
+  const blockedSet = new Set(Array.isArray(blockedNodes) ? blockedNodes.map((n) => {
+    if (Array.isArray(n)) return `${n[0]},${n[1]}`
+    return `${n.x},${n.y}`
+  }) : [])
+
+  const pathSet = new Set(Array.isArray(pathUpdate) ? pathUpdate.map((p) => {
+    if (Array.isArray(p)) return `${p[0]},${p[1]}`
+    return `${p.x},${p.y}`
+  }) : [])
 
   const poiByCoord = {}
   pois.forEach(p => { poiByCoord[`${p.coord_x},${p.coord_y}`] = p })

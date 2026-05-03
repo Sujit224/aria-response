@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FloorMap } from './FloorMap'
+import { Floor3DMap } from '../../../shared/Floor3DMap'
 import { DispatchLog } from './DispatchLog'
 import { getIncident, getFloorMap, getFloorCameras, resolveIncident } from '../lib/api'
 import { SEV_COLOR, SEV_LABEL, THREAT_LABEL, THREAT_ICON, T } from '../lib/constants'
@@ -166,19 +166,23 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
           {/* Floor map */}
           {floorData && (
             <Section title={`FLOOR ${floorData.level} MAP — ${incident.full_location}`}>
-              <FloorMap
-                grid         = {floorData.static_grid}
-                pois         = {floorData.pois}
-                blockedNodes = {blockedNodes}
-                pathUpdate   = {pathUpdate}
-                cameras      = {cameras}
+              <Floor3DMap
+                incidentData={{
+                  static_grid: floorData.static_grid,
+                  grid_width: floorData.static_grid[0]?.length || 0,
+                  grid_height: floorData.static_grid.length,
+                  all_pois: floorData.pois,
+                  blocked_nodes: blockedNodes,
+                  path_update: pathUpdate,
+                  origin_poi_id: incident.origin_poi_id,
+                }}
               />
             </Section>
           )}
 
           {/* Stats row */}
           <Section title="INCIDENT DETAILS">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[
                 ['Source',    incident.source === 'chat' ? 'Guest report' : 'CCTV camera'],
                 ['Detected',  new Date(incident.detected_at).toLocaleTimeString()],
@@ -186,13 +190,13 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
                 ['Dispatches', dispatches.length],
               ].map(([label, val]) => (
                 <div key={label} style={{
-                  background: T.bgCard,
-                  border: '0.5px solid rgba(59,130,246,0.1)',
-                  borderRadius: 8, padding: '10px 12px',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: 8, padding: '12px',
                 }}>
-                  <div style={{ fontSize: 10, color: T.textDim, marginBottom: 3,
-                    fontFamily: T.mono, letterSpacing: .5 }}>{label}</div>
-                  <div style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>{val}</div>
+                  <div style={{ fontSize: 10, color: T.textDim, marginBottom: 4,
+                    fontFamily: T.mono, letterSpacing: .5, fontWeight: 600 }}>{label.toUpperCase()}</div>
+                  <div style={{ fontSize: 14, color: T.text, fontWeight: 500 }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -214,10 +218,10 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
 
 function Section({ title, children }) {
   return (
-    <div style={{ padding: '16px 20px', borderBottom: '0.5px solid rgba(59,130,246,0.08)' }}>
+    <div style={{ padding: '24px 20px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
       <div style={{
-        fontSize: 9, fontFamily: 'monospace', letterSpacing: 2,
-        color: '#3b82f6', marginBottom: 12, fontWeight: 600,
+        fontSize: 10, fontFamily: T.mono, letterSpacing: 2,
+        color: '#64748b', marginBottom: 16, fontWeight: 700,
       }}>
         {title}
       </div>

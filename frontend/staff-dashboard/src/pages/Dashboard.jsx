@@ -13,7 +13,7 @@ const STAFF_ID = import.meta.env.VITE_STAFF_ID || new URLSearchParams(location.s
 const FLOOR_ID = new URLSearchParams(location.search).get('floor') || ''
 const BLOCK_ID = new URLSearchParams(location.search).get('block') || ''
 
-export function Dashboard() {
+export function Dashboard({ onGoQR }) {
   const [incidents,  setIncidents]  = useState([])
   const [selected,   setSelected]   = useState(null)
   const [liveBlocked, setLiveBlocked] = useState([])
@@ -35,7 +35,8 @@ export function Dashboard() {
   async function fetchIncidents() {
     try {
       const data = await getActiveIncidents(VENUE_ID)
-      setIncidents(data)
+      // Normalize 'id' to 'incident_id' for consistency with WebSocket events
+      setIncidents(data.map(i => ({ ...i, incident_id: i.incident_id || i.id })))
     } catch (e) {
       console.error('[ARIA] Fetch incidents failed:', e)
     } finally {
@@ -143,26 +144,31 @@ export function Dashboard() {
         wsStatus      = {wsStatus}
         activeCount   = {incidents.length}
         criticalCount = {criticalCount}
+        onGoQR        = {onGoQR}
       />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
         {/* ── Left panel: incident list ──────────────────────── */}
         <div style={{
-          width: 300,
+          width: 320,
+          background: T.bgCard,
           borderRight: `1px solid ${T.border}`,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           flexShrink: 0,
+          zIndex: 10,
         }}>
           <div style={{
-            padding: '12px 16px 8px',
-            borderBottom: `0.5px solid ${T.border}`,
+            padding: '16px 20px 12px',
+            borderBottom: `1px solid ${T.border}`,
+            background: 'rgba(15, 23, 42, 0.8)',
+            backdropFilter: 'blur(8px)'
           }}>
             <div style={{
-              fontSize: 9, letterSpacing: 2, color: '#3b82f6',
-              fontFamily: T.mono, fontWeight: 600,
+              fontSize: 11, letterSpacing: 2, color: T.textDim,
+              fontFamily: T.sans, fontWeight: 700,
             }}>
               ACTIVE INCIDENTS
             </div>
