@@ -13,10 +13,16 @@ export function QRGenerator({ onBack }) {
   useEffect(() => {
     async function fetchRooms() {
       try {
-        const res = await fetch(`${API}/map/pois?type=room&limit=200`)
+        const hotelId = VENUE_ID !== 'auto' ? VENUE_ID : ''
+        const params = new URLSearchParams({ type: 'room', limit: '200' })
+        if (hotelId) params.set('hotel_id', hotelId)
+        const res = await fetch(`${API}/map/pois?${params}`)
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
-        setRooms(data.filter(p => p.type === 'room'))
+        const rooms = data.filter(p => p.type === 'room')
+        // Sort by name for consistent ordering
+        rooms.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        setRooms(rooms)
       } catch (err) {
         console.error(err)
       } finally {

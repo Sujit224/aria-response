@@ -103,15 +103,27 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
 
     # ── On-duty staff for this incident ──────────────────────────
     all_staff = await get_on_duty_staff(nlp.venue_id)
+    
+    print(f"[ZONE] Total on-duty staff for venue {nlp.venue_id}: {len(all_staff)}")
+    print(f"[ZONE] Incident block_id: {nlp.block_id}, floor_id: {nlp.floor_id}")
+    
     block_staff = [
         s for s in all_staff 
         if s.get("current_block_id") == nlp.block_id or s.get("block_id") == nlp.block_id
     ]
-    # Include staff assigned to this specific floor, or staff covering the whole block (no specific floor)
+    print(f"[ZONE] Staff in block {nlp.block_id}: {len(block_staff)} => {[s.get('name') for s in block_staff]}")
+    
+    # Include staff on this specific floor, or staff covering the whole block (no specific floor)
     available_staff = [
         s for s in block_staff 
         if s.get("current_floor_id") == nlp.floor_id or not s.get("current_floor_id")
     ]
+    print(f"[ZONE] Available staff for floor {nlp.floor_id}: {len(available_staff)} => {[s.get('name') for s in available_staff]}")
+    
+    # ── Fallback: if no block-specific staff found, use all on-duty staff ──
+    if not available_staff:
+        print(f"[ZONE] WARNING: No block-specific staff found — falling back to all on-duty staff")
+        available_staff = all_staff
     
     assigned_staff = []
     if nlp.threat_type == "medical":
@@ -130,10 +142,11 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
             assigned_staff = wardens[:1] if wardens else security_staff[:1]
             
     if not assigned_staff:
-        assigned_staff = available_staff[:1]
+        assigned_staff = available_staff[:2]  # last resort: first 2 available
 
     staff_ids = [s["id"] for s in assigned_staff]
     assigned_staff_names = [s.get("name", "Emergency Responder") for s in assigned_staff]
+    print(f"[ZONE] Assigned staff names: {assigned_staff_names}")
 
     full_location = f"Block {block['block_code']}, {nlp.room_number}, Floor {floor['level']}"
 

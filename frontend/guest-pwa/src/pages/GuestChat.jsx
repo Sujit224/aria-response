@@ -87,7 +87,8 @@ export function GuestChat() {
 
   const onThreatDetected = useCallback((data) => {
     // Build incident context for AlertBanner
-    setIncident({
+    setIncident(prev => ({
+      ...prev,
       incident_id:   data.incident_id,
       incident_type: data.type?.toLowerCase(),
       severity:      data.severity,
@@ -105,8 +106,8 @@ export function GuestChat() {
       room_name:     roomName,
       // steps will arrive via FCM push notification (data payload)
       // or via the chat ack message below
-      steps: data.steps || [],
-    })
+      steps: data.steps || prev?.steps || [],
+    }))
 
     const isMedical = data.type?.toLowerCase() === 'medical'
     const staffNames = data.assigned_staff_names && data.assigned_staff_names.length > 0 
@@ -205,7 +206,8 @@ export function GuestChat() {
           onMessage(messaging, (payload) => {
             const d = payload.data || {}
             if (d.incident_id) {
-              setIncident({
+              setIncident(prev => ({
+                ...prev,
                 incident_id:   d.incident_id,
                 incident_type: d.incident_type,
                 severity:      d.severity,
@@ -214,7 +216,7 @@ export function GuestChat() {
                 distance:      d.distance,
                 steps:         d.steps?.split('||').filter(Boolean) || [],
                 room_name:     roomName,
-              })
+              }))
             }
           })
         }

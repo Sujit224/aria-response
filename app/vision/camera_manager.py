@@ -43,7 +43,7 @@ class CameraManager:
         try:
             docs = await loop.run_in_executor(None, lambda: list(
                 db.collection("cameras")
-                  .where(filter=("active", "==", True))
+                  .where("active", "==", True)
                   .stream()
             ))
             cameras = [d.to_dict() for d in docs]

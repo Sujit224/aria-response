@@ -9,22 +9,70 @@ router = APIRouter(prefix="/map", tags=["map"])
 
 
 @router.get("/pois")
-async def list_all_pois(type: str = Query(None), limit: int = Query(200)):
+async def list_all_pois(
+    type: str = Query(None),
+    limit: int = Query(200),
+    hotel_id: str = Query(None),
+):
     """
-    Returns all POIs, optionally filtered by type (e.g. 'room').
-    MOCKED for hackathon to avoid Firestore quota limits.
+    Returns POIs for the given hotel, optionally filtered by type (e.g. 'room').
+    Queries Firestore via the block/floor chain for this hotel.
     """
-    import json
-    try:
-        with open("scripts/hotel_seed_firebase.json", "r") as f:
-            data = json.load(f)
-            pois = data.get("pois", [])
-            if type:
-                pois = [p for p in pois if p.get("type") == type]
-            return pois[:limit]
-    except Exception as e:
-        print(f"Error reading local POIs: {e}")
+    import os
+    db = get_db()
+    venue_id = hotel_id or os.getenv("VENUE_ID", "")
+    if not venue_id:
         return []
+
+    try:
+        # Get all blocks for this hotel
+        loop = __import__("asyncio").get_event_loop()
+        blocks = await loop.run_in_executor(None, lambda: list(
+            db.collection("blocks").where("hotel_id", "==", venue_id).stream()
+        ))
+        block_ids = [b.id for b in blocks]
+        if not block_ids:
+            return []
+
+        # Get all floor IDs for those blocks
+        floor_ids = []
+        for bid in block_ids:
+            floors = await loop.run_in_executor(None, lambda bid=bid: list(
+                db.collection("floors").where("block_id", "==", bid).stream()
+            ))
+            floor_ids.extend([f.id for f in floors])
+
+        if not floor_ids:
+            return []
+
+        # Get all POIs for those floors (Firestore 'in' max 10 at a time)
+        all_pois = []
+        chunks = [floor_ids[i:i+10] for i in range(0, len(floor_ids), 10)]
+        for chunk in chunks:
+            poi_docs = await loop.run_in_executor(None, lambda c=chunk: list(
+                db.collection("pois").where("floor_id", "in", c).stream()
+            ))
+            all_pois.extend([d.to_dict() for d in poi_docs])
+
+        if type:
+            all_pois = [p for p in all_pois if p.get("type") == type]
+
+        return all_pois[:limit]
+    except Exception as e:
+        print(f"[ARIA-MAP] Error fetching POIs from Firestore: {e}")
+        return []
+
+
+
+@router.get("/pois/{poi_id}")
+async def get_poi_by_id(poi_id: str):
+    """Returns a single POI by its ID. Used by the Guest PWA to resolve room names."""
+    from app.db.collections import get_poi
+    poi = await get_poi(poi_id)
+    if not poi:
+        raise HTTPException(status_code=404, detail="POI not found")
+    return poi
+
 
 
 @router.get("/floor/{floor_id}")
