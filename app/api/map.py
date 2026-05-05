@@ -34,14 +34,23 @@ async def list_all_pois(
         if not block_ids:
             return []
 
-        # Get all floor IDs for those blocks
-        floor_ids = []
+        # Get all floor IDs and map them to their floors/blocks
+        floor_map = {}
         for bid in block_ids:
+            b_doc = [b for b in blocks if b.id == bid][0].to_dict()
+            block_code = b_doc.get("block_code", "")
+            
             floors = await loop.run_in_executor(None, lambda bid=bid: list(
                 db.collection("floors").where("block_id", "==", bid).stream()
             ))
-            floor_ids.extend([f.id for f in floors])
+            for f in floors:
+                f_doc = f.to_dict()
+                floor_map[f.id] = {
+                    "floor_level": f_doc.get("level", ""),
+                    "block_code": block_code
+                }
 
+        floor_ids = list(floor_map.keys())
         if not floor_ids:
             return []
 
@@ -52,7 +61,12 @@ async def list_all_pois(
             poi_docs = await loop.run_in_executor(None, lambda c=chunk: list(
                 db.collection("pois").where("floor_id", "in", c).stream()
             ))
-            all_pois.extend([d.to_dict() for d in poi_docs])
+            for d in poi_docs:
+                p_dict = d.to_dict()
+                f_info = floor_map.get(p_dict.get("floor_id"), {})
+                p_dict["block_code"] = f_info.get("block_code", "")
+                p_dict["floor_level"] = f_info.get("floor_level", "")
+                all_pois.append(p_dict)
 
         if type:
             all_pois = [p for p in all_pois if p.get("type") == type]
