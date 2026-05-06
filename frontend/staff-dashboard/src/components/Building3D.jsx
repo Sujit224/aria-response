@@ -141,19 +141,50 @@ function BuildingModel({ blocks, incidents }) {
         const maxBlockH = Math.max(...block.floors.map(f => f.grid_height))
         const scale = 2.0
         
+        const floorCount = block.floors?.length || 0
+        const buildingHeight = (floorCount > 0 ? (floorCount - 1) * 12 : 0) + 8
+        const centerY = (floorCount > 0 ? (floorCount - 1) * 12 : 0) / 2
+
         return (
           <group key={block.block_id} position={[posX, 0, 0]}>
-            {/* Small subtle block indicator */}
+            {/* Tactical Block Designation */}
             <Text
-              position={[0, (block.floors?.length || 0) * 15 + 10, 0]}
-              fontSize={4}
+              position={[0, buildingHeight + 10, 0]}
+              fontSize={5}
               color="#60a5fa"
-              opacity={0.6}
+              opacity={0.8}
               transparent
-              fontWeight={800}
+              fontWeight={900}
+              letterSpacing={0.1}
             >
               {`BLOCK-${block.block_code}`.toUpperCase()}
             </Text>
+
+            {/* Central Elevator/Structural Core */}
+            {floorCount > 0 && (
+              <mesh position={[0, centerY, 0]}>
+                <boxGeometry args={[4, buildingHeight, 4]} />
+                <meshStandardMaterial color="#0f172a" metalness={0.6} roughness={0.5} />
+                <Edges color="#1e293b" opacity={0.5} />
+              </mesh>
+            )}
+
+            {/* Glass Architectural Facade */}
+            {floorCount > 0 && (
+              <mesh position={[0, centerY, 0]}>
+                <boxGeometry args={[maxBlockW * scale + 6, buildingHeight, maxBlockH * scale + 6]} />
+                <meshStandardMaterial 
+                  color="#3b82f6" 
+                  opacity={0.08} 
+                  transparent 
+                  roughness={0.2}
+                  metalness={0.5}
+                  side={THREE.DoubleSide}
+                  depthWrite={false}
+                />
+                <Edges color="#3b82f6" opacity={0.15} transparent />
+              </mesh>
+            )}
 
             {/* Floors */}
             {block.floors?.map((floor, fIdx) => (
@@ -166,7 +197,7 @@ function BuildingModel({ blocks, incidents }) {
               />
             ))}
 
-            {/* Foundation */}
+            {/* Solid Foundation */}
             <mesh position={[0, -2, 0]}>
               <boxGeometry args={[maxBlockW * scale + 10, 4, maxBlockH * scale + 10]} />
               <meshStandardMaterial color="#020617" metalness={1} roughness={0.1} />
