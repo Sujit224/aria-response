@@ -126,14 +126,24 @@ async def get_hotel_blocks(hotel_id: str):
     result = []
     for block in blocks:
         floors = await list_floors(block["id"])
+        floor_list = []
+        for f in floors:
+            pois = await get_pois_on_floor(f["id"])
+            floor_list.append({
+                "floor_id": f["id"], 
+                "level": f["level"],
+                "grid_width": f["grid_width"], 
+                "grid_height": f["grid_height"],
+                "pois": [
+                    {"id": p["id"], "name": p["name"], "type": p["type"], 
+                     "coord_x": p["coord_x"], "coord_y": p["coord_y"]}
+                    for p in pois
+                ]
+            })
         result.append({
             "block_id":   block["id"],
             "block_code": block["block_code"],
             "name":       block.get("name"),
-            "floors": [
-                {"floor_id": f["id"], "level": f["level"],
-                 "grid_width": f["grid_width"], "grid_height": f["grid_height"]}
-                for f in floors
-            ],
+            "floors":     floor_list,
         })
     return result

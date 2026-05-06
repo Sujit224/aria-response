@@ -21,80 +21,119 @@ export function IncidentCard({ incident, selected, onSelect }) {
     <div
       onClick={() => onSelect(incident)}
       style={{
-        background:   selected ? colors.bg : 'rgba(255, 255, 255, 0.02)',
-        border:       `1px solid ${selected ? colors.border : 'rgba(255,255,255,0.05)'}`,
-        borderRadius: 12,
-        padding:      '16px',
+        background:   selected ? colors.bg : 'rgba(30, 41, 59, 0.4)',
+        border:       `1px solid ${selected ? colors.border : 'rgba(255,255,255,0.08)'}`,
+        borderRadius: 14,
+        padding:      '18px',
         cursor:       'pointer',
-        transition:   'all .2s ease',
-        marginBottom: 8,
+        transition:   'all .3s cubic-bezier(0.4, 0, 0.2, 1)',
+        marginBottom: 12,
         position:     'relative',
         fontFamily:   T.sans,
-        boxShadow:    selected ? `0 0 20px ${colors.border}22` : 'none',
+        boxShadow:    selected ? `0 10px 30px ${colors.border}33` : '0 4px 12px rgba(0,0,0,0.1)',
+        backdropFilter: 'blur(8px)',
+        transform:    selected ? 'scale(1.02)' : 'scale(1)',
+        zIndex:       selected ? 10 : 1,
       }}
-      onMouseOver={e => { if (!selected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)' }}
-      onMouseOut={e => { if (!selected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)' }}
+      onMouseOver={e => { 
+        if (!selected) {
+          e.currentTarget.style.background = 'rgba(30, 41, 59, 0.6)'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'
+          e.currentTarget.style.transform = 'translateY(-2px)'
+        }
+      }}
+      onMouseOut={e => { 
+        if (!selected) {
+          e.currentTarget.style.background = 'rgba(30, 41, 59, 0.4)'
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
+          e.currentTarget.style.transform = 'scale(1)'
+        }
+      }}
     >
       {/* Severity badge + time */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 1,
+          fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
           background: colors.badge, color: '#fff',
-          padding: '2px 8px', borderRadius: 99,
+          padding: '3px 10px', borderRadius: 99,
+          textTransform: 'uppercase',
+          boxShadow: `0 0 10px ${colors.badge}44`
         }}>
           {sevLabel}
         </span>
-        <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.mono }}>
+        <span style={{ fontSize: 10, color: T.textDim, fontFamily: T.mono, opacity: 0.7 }}>
           {timeAgo(incident.detected_at)}
         </span>
       </div>
 
       {/* Threat type */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ fontSize: 14 }}>{icon}</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <span style={{ 
+          fontSize: 18, 
+          filter: selected ? 'drop-shadow(0 0 5px rgba(255,255,255,0.3))' : 'none' 
+        }}>{icon}</span>
+        <span style={{ 
+          fontSize: 14, 
+          fontWeight: 700, 
+          color: selected ? '#fff' : T.text,
+          letterSpacing: 0.3
+        }}>{label}</span>
       </div>
 
       {/* Location */}
-      <div style={{ fontSize: 11, color: T.textSub, marginBottom: 4 }}>
+      <div style={{ 
+        fontSize: 11, 
+        color: selected ? 'rgba(255,255,255,0.8)' : T.textSub, 
+        marginBottom: 10,
+        lineHeight: 1.4
+      }}>
         {incident.full_location}
       </div>
 
       {/* Source + pending dispatches */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{
-          fontSize: 10, color: T.textDim,
-          background: 'rgba(59,130,246,0.08)',
-          padding: '1px 6px', borderRadius: 4,
-          fontFamily: T.mono, letterSpacing: .5,
-        }}>
-          {incident.source === 'chat' ? 'GUEST REPORT' : 'CCTV'}
-        </span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <span style={{
+            fontSize: 9, color: T.textDim,
+            background: 'rgba(255,255,255,0.05)',
+            padding: '2px 8px', borderRadius: 6,
+            fontFamily: T.mono, letterSpacing: 1,
+            fontWeight: 600,
+            border: '1px solid rgba(255,255,255,0.03)'
+          }}>
+            {incident.source === 'chat' ? 'GUEST' : 'CCTV'}
+          </span>
+        </div>
 
         {pendingDispatches > 0 && (
-          <span style={{
-            fontSize: 10, color: '#f59e0b',
-            background: 'rgba(245,158,11,0.12)',
-            padding: '1px 6px', borderRadius: 99,
+          <div style={{
+            fontSize: 10, color: '#fbbf24',
+            background: 'rgba(251,191,36,0.1)',
+            padding: '3px 10px', borderRadius: 99,
             fontFamily: T.mono,
+            fontWeight: 700,
+            border: '1px solid rgba(251,191,36,0.2)',
+            display: 'flex', alignItems: 'center', gap: 4
           }}>
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#fbbf24' }} />
             {pendingDispatches} PENDING
-          </span>
+          </div>
         )}
       </div>
 
       {/* Active pulse dot */}
       <div style={{
-        position: 'absolute', top: 10, right: 10,
-        width: 7, height: 7, borderRadius: '50%',
+        position: 'absolute', top: 18, right: 18,
+        width: 8, height: 8, borderRadius: '50%',
         background: colors.dot,
-        boxShadow: `0 0 0 2px ${colors.dot}44`,
-        animation: 'pulse-dot 2s ease-in-out infinite',
+        boxShadow: `0 0 10px ${colors.dot}`,
+        animation: 'pulse-dot 1.5s ease-in-out infinite',
       }} />
 
       <style>{`
         @keyframes pulse-dot {
-          0%,100% { opacity:1 } 50% { opacity:.3 }
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.3); opacity: 0.5; }
         }
       `}</style>
     </div>
