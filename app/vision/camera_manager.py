@@ -56,8 +56,8 @@ class CameraManager:
             print("[VISION] No active cameras — workers skipped")
             return
 
-        # Load the model once, share it across all workers
-        shared_model = _get_shared_model(self.model_path)
+        # Load the model once in the background, share it across all workers
+        shared_model = await loop.run_in_executor(None, _get_shared_model, self.model_path)
 
         for cam in cameras:
             stream_url = cam.get("stream_url", "")

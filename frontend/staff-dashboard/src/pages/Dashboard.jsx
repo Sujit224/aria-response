@@ -61,7 +61,8 @@ export function Dashboard({ onGoQR }) {
         type:           data.type.toLowerCase(),
         severity:       data.severity === 'CRITICAL' ? 5 : data.severity === 'HIGH' ? 4 : 3,
         full_location:  data.full_location,
-        source:         'vision',
+        floor_id:       data.floor_id || '',
+        source:         data.source || 'vision',
         status:         'active',
         detected_at:    new Date().toISOString(),
         blocked_nodes:  data.blocked_nodes,
@@ -79,7 +80,9 @@ export function Dashboard({ onGoQR }) {
     setSelected(prev => {
       if (!prev && data.severity === 'CRITICAL') {
         return { incident_id: data.incident_id, type: data.type.toLowerCase(),
-          severity: 5, full_location: data.full_location, source: 'vision',
+          severity: 5, full_location: data.full_location,
+          floor_id: data.floor_id || '',
+          source: data.source || 'vision',
           status: 'active', detected_at: new Date().toISOString() }
       }
       return prev

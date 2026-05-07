@@ -13,19 +13,9 @@ from app.vision.schemas import FrameDetection, BoundingBox
 from app.vision.pipeline_state import VisionPipelineState
 from app.vision.pipeline import vision_pipeline
 
-# YOLOv8 import — caught gracefully if ultralytics not installed
-try:
-    from ultralytics import YOLO
-    _yolo_available = True
-except ImportError:
-    _yolo_available = False
-    print("[VISION] ultralytics not installed — camera workers run in stub mode")
-
-try:
-    import cv2
-    _cv2_available = True
-except ImportError:
-    _cv2_available = False
+# YOLOv8 and cv2 will be imported lazily inside _run_sync to prevent startup hangs.
+_yolo_available = True  # We assume available if we try to import it
+_cv2_available = True
 
 
 INFERENCE_INTERVAL = 1.0   # seconds between frame reads
@@ -66,9 +56,13 @@ class CameraWorker:
 
     def _run_sync(self):
         """Blocking loop — runs in thread pool executor."""
-        if not _cv2_available or not _yolo_available:
+        try:
+            import cv2
+            from ultralytics import YOLO
+        except ImportError:
             print(f"[VISION] {self.camera_id[:8]}: running in NO-OP stub mode (cv2/yolo missing)")
             return
+
         if self._model is None:
             print(f"[VISION] {self.camera_id[:8]}: no model available — skipping")
             return

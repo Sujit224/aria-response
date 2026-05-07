@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Floor3DMap } from '../../../shared/Floor3DMap'
 import { DispatchLog } from './DispatchLog'
+import { CameraView3D } from './CameraView3D'
+import { WebGLErrorBoundary } from './WebGLErrorBoundary'
 import { getIncident, getFloorMap, getFloorCameras, resolveIncident } from '../lib/api'
 import { SEV_COLOR, SEV_LABEL, THREAT_LABEL, THREAT_ICON, T } from '../lib/constants'
 
@@ -177,6 +179,34 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
                   origin_poi_id: incident.origin_poi_id,
                 }}
               />
+            </Section>
+          )}
+
+          {/* 3D Camera coverage view — shown for vision-sourced incidents */}
+          {incident.source === 'vision' && incident.floor_id && (
+            <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
+              <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
+                <WebGLErrorBoundary floorId={incident.floor_id}>
+                  <CameraView3D
+                    floorId={incident.floor_id}
+                    incident={incident}
+                  />
+                </WebGLErrorBoundary>
+              </div>
+            </Section>
+          )}
+
+          {/* For vision alerts without a floor_id on the incident, use the test camera floor */}
+          {incident.source === 'vision' && !incident.floor_id && (
+            <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
+              <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
+                <WebGLErrorBoundary floorId={floorData?.floor_id}>
+                  <CameraView3D
+                    floorId={floorData?.floor_id}
+                    incident={incident}
+                  />
+                </WebGLErrorBoundary>
+              </div>
             </Section>
           )}
 

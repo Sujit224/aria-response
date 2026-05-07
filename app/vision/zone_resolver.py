@@ -132,5 +132,6 @@ async def vision_zone_resolver_node(state: VisionPipelineState) -> VisionPipelin
         zone_name     = nearest_exit["name"],
         blocked_nodes = [],
         path_update   = [[c[0], c[1]] for c in path],
+        description   = clsf.description,
     )
     return state
