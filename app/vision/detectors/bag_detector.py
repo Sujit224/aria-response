@@ -23,6 +23,7 @@ class BagDetector:
         # ── DeepSORT Tracking State ──
         self.bag_static_since = {}   # {track_id: timestamp} - kab se ruka hai
         self.bag_last_center  = {}   # {track_id: (cx, cy)}  - pichli position
+        self.bag_best_conf    = {}   # {track_id: float}     - best YOLO confidence seen
         self.alert_sent_ids   = set()  # Jinhe alert ja chuka hai
 
         print(f"  [Bag] ✅ Ready | Threshold: {self.thresh} | Alert after: {config.BAG_STATIC_SECONDS}s")
@@ -55,11 +56,13 @@ class BagDetector:
 
         # YOLO detections ko DeepSORT format mein convert karo
         detections = []
+        det_conf_map = {}   # index → YOLO confidence (for track mapping)
         for box in results.boxes:
             class_name = self.model.names[int(box.cls[0])].lower()
             if class_name in self.trigger_classes:
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
                 conf = float(box.conf[0])
+                det_conf_map[len(detections)] = conf
                 detections.append(([x1, y1, x2-x1, y2-y1], conf, class_name))
 
         # DeepSORT update
@@ -73,6 +76,17 @@ class BagDetector:
             tid    = track.track_id
             bbox   = track.to_ltrb()
             center = self._center(bbox)
+
+            # Track ka best confidence update karo (if detection matched)
+            det = track.get_det_class()
+            if det and detections:
+                # Use the detection confidence from YOLO
+                matched_conf = detections[0][1] if detections else self.thresh
+                for d_conf_val in det_conf_map.values():
+                    matched_conf = max(matched_conf, d_conf_val)
+                self.bag_best_conf[tid] = max(
+                    self.bag_best_conf.get(tid, 0.0), matched_conf
+                )
 
             # Pehli baar dikh raha hai?
             if tid not in self.bag_static_since:
@@ -89,7 +103,12 @@ class BagDetector:
             static_time = now - self.bag_static_since[tid]
 
             # ── TRIGGER CHECK ──
-            if static_time >= config.BAG_STATIC_SECONDS and tid not in self.alert_sent_ids:
+            best_conf = self.bag_best_conf.get(tid, self.thresh)
+            min_conf  = getattr(config, "BAG_MIN_ALERT_CONFIDENCE", self.thresh)
+
+            if (static_time >= config.BAG_STATIC_SECONDS
+                    and tid not in self.alert_sent_ids
+                    and best_conf >= min_conf):
                 self.alert_sent_ids.add(tid)
 
                 fh, fw = frame.shape[:2]
@@ -97,14 +116,14 @@ class BagDetector:
                 loc_x = "Left"   if cx < fw // 3 else ("Right"  if cx > 2 * fw // 3 else "Center")
                 loc_y = "Top"    if cy < fh // 3 else ("Bottom" if cy > 2 * fh // 3 else "Middle")
 
-                print(f"  ⏱ BAG ALERT: ID:{tid} | {static_time:.0f}s stationary | Loc: {loc_y}-{loc_x}")
+                print(f"  ⏱ BAG ALERT: ID:{tid} | {static_time:.0f}s stationary | Conf: {best_conf:.2f} | Loc: {loc_y}-{loc_x}")
 
                 return {
                     "source"        : "bag_detector",
                     "type"          : "ABANDONED_BAG",
                     "track_id"      : tid,
                     "static_seconds": round(static_time),
-                    "confidence"    : self.thresh,
+                    "confidence"    : round(best_conf, 2),
                     "location"      : f"{loc_y}-{loc_x}",
                     "bbox"          : [int(v) for v in bbox],
                     "priority"      : "HIGH"

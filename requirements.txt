@@ -9,5 +9,6 @@ python-dotenv
 pydantic
 websockets
 ultralytics
-opencv-python-headless
+opencv-python
 numpy
+deep-sort-realtime

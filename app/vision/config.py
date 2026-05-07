@@ -42,9 +42,9 @@ SCAN_TRIGGER_CLASSES = [
 #  CONFIDENCE THRESHOLDS
 # ══════════════════════════════════════════
 CONFIDENCE = {
-    "weapon": 0.60,   # Tumne bola 0.6
-    "smoke":  0.60,   # 0.6 - smoke ke liye bhi same
-    "bag":    0.40,   # Bag ke liye thoda low (recall 0.393 hai model ki)
+    "weapon": 0.75,   # Higher threshold for fewer false positives
+    "smoke":  0.75,   # Same as weapon - only confident detections
+    "bag":    0.50,   # Balanced for bag recall vs precision
     "scan":   0.65,   # Scanner ke liye thoda high (false positive dangerous)
 }
 
@@ -59,7 +59,11 @@ WEAPON_INSTANT_TRIGGER = True
 SMOKE_CONSECUTIVE_FRAMES = 3
 
 # Bag: Kitne seconds tak stationary rahe tab trigger
-BAG_STATIC_SECONDS = 2
+BAG_STATIC_SECONDS = 30
+
+# Bag: Minimum YOLO confidence required to emit an alert
+# (YOLO runs at 0.40 for recall, but alerts need stronger detections)
+BAG_MIN_ALERT_CONFIDENCE = 0.50
 
 # Scanner: Device connected hai ya nahi
 SCANNER_CONNECTED = False     # True karo jab scanner attach karo

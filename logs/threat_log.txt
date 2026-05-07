@@ -1,46 +1,66 @@
 
 ============================================================
-TIMESTAMP : 2026-04-28 00:48:42
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : KNIFE
-CONFIDENCE: 64%
-LOCATION  : Bottom-Right
-MESSAGE   : KNIFE detected at Bottom-Right with 64% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:48:42
+TIMESTAMP : 2026-04-30 01:58:02
 LEVEL     : CRITICAL
 SOURCE    : smoke_detector
 TYPE      : SMOKE
-CONFIDENCE: 85%
+CONFIDENCE: 80%
+LOCATION  : Bottom-Left
+MESSAGE   : SMOKE confirmed at Bottom-Left. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-04-30 01:58:22
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 80%
+LOCATION  : Bottom-Left
+MESSAGE   : GUN detected at Bottom-Left with 80% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-30 01:58:59
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : SMOKE
+CONFIDENCE: 78%
 LOCATION  : Middle-Center
 MESSAGE   : SMOKE confirmed at Middle-Center. Fire hazard detected.
 ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
 
 ============================================================
-TIMESTAMP : 2026-04-28 00:49:20
+TIMESTAMP : 2026-04-30 01:59:22
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
 TYPE      : BLOOD
-CONFIDENCE: 62%
-LOCATION  : Top-Left
-MESSAGE   : BLOOD detected at Top-Left with 62% confidence. Immediate threat.
+CONFIDENCE: 85%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 85% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
 ============================================================
-TIMESTAMP : 2026-04-28 00:50:33
+TIMESTAMP : 2026-04-30 02:00:31
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
 TYPE      : KNIFE
-CONFIDENCE: 85%
-LOCATION  : Bottom-Center
-MESSAGE   : KNIFE detected at Bottom-Center with 85% confidence. Immediate threat.
+CONFIDENCE: 79%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 79% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
 ============================================================
-TIMESTAMP : 2026-04-28 00:51:33
+TIMESTAMP : 2026-04-30 02:03:42
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 83%
+LOCATION  : Middle-Right
+MESSAGE   : KNIFE detected at Middle-Right with 83% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-30 02:23:31
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
 TYPE      : KNIFE
@@ -50,174 +70,44 @@ MESSAGE   : KNIFE detected at Bottom-Left with 79% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
 ============================================================
-TIMESTAMP : 2026-04-28 00:52:51
+TIMESTAMP : 2026-04-30 02:24:32
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 78%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 78% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-30 02:28:04
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 79%
+LOCATION  : Middle-Left
+MESSAGE   : KNIFE detected at Middle-Left with 79% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-30 14:58:44
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 84%
+LOCATION  : Middle-Left
+MESSAGE   : BLOOD detected at Middle-Left with 84% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-04-30 14:58:48
 LEVEL     : CRITICAL
 SOURCE    : smoke_detector
 TYPE      : SMOKE
-CONFIDENCE: 65%
-LOCATION  : Top-Left
-MESSAGE   : SMOKE confirmed at Top-Left. Fire hazard detected.
-ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:53:00
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 61%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 61% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:54:06
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : GUN
-CONFIDENCE: 69%
-LOCATION  : Middle-Right
-MESSAGE   : GUN detected at Middle-Right with 69% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:55:07
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 61%
-LOCATION  : Bottom-Left
-MESSAGE   : BLOOD detected at Bottom-Left with 61% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:56:17
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : GUN
-CONFIDENCE: 68%
-LOCATION  : Top-Left
-MESSAGE   : GUN detected at Top-Left with 68% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:57:19
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : GUN
-CONFIDENCE: 75%
-LOCATION  : Middle-Right
-MESSAGE   : GUN detected at Middle-Right with 75% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 00:59:35
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : KNIFE
-CONFIDENCE: 71%
-LOCATION  : Middle-Center
-MESSAGE   : KNIFE detected at Middle-Center with 71% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:02:07
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : GUN
-CONFIDENCE: 67%
-LOCATION  : Middle-Right
-MESSAGE   : GUN detected at Middle-Right with 67% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:05:05
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 68%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 68% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:06:22
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 60%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 60% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:08:22
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 64%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 64% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:08:40
-LEVEL     : CRITICAL
-SOURCE    : smoke_detector
-TYPE      : FIRE
-CONFIDENCE: 68%
-LOCATION  : Middle-Center
-MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
-ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:09:26
-LEVEL     : CRITICAL
-SOURCE    : smoke_detector
-TYPE      : FIRE
-CONFIDENCE: 71%
-LOCATION  : Middle-Center
-MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
-ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:10:11
-LEVEL     : CRITICAL
-SOURCE    : smoke_detector
-TYPE      : FIRE
-CONFIDENCE: 72%
-LOCATION  : Middle-Center
-MESSAGE   : FIRE confirmed at Middle-Center. Fire hazard detected.
-ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:11:00
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
 CONFIDENCE: 77%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 77% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:12:30
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : BLOOD
-CONFIDENCE: 72%
-LOCATION  : Middle-Center
-MESSAGE   : BLOOD detected at Middle-Center with 72% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
-
-============================================================
-TIMESTAMP : 2026-04-28 01:15:37
-LEVEL     : CRITICAL
-SOURCE    : weapon_detector
-TYPE      : KNIFE
-CONFIDENCE: 61%
-LOCATION  : Middle-Center
-MESSAGE   : KNIFE detected at Middle-Center with 61% confidence. Immediate threat.
-ACTION    : Evacuate area and contact armed response unit immediately.
+LOCATION  : Middle-Left
+MESSAGE   : SMOKE confirmed at Middle-Left. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
 
 ============================================================
 TIMESTAMP : 2026-05-05 19:06:45
@@ -229,7 +119,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : BLOOD detected at Bottom-Center with 78% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:07:42
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -239,7 +128,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 69% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:07:51
 LEVEL     : CRITICAL
 SOURCE    : smoke_detector
@@ -249,7 +137,6 @@ LOCATION  : Bottom-Right
 MESSAGE   : SMOKE confirmed at Bottom-Right. Fire hazard detected.
 ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:07:53
 LEVEL     : HIGH
 SOURCE    : bag_detector
@@ -259,7 +146,6 @@ LOCATION  : Bottom-Right
 MESSAGE   : Unattended bag at Bottom-Right for 2 seconds. Potential threat.
 ACTION    : Do not touch. Clear area and contact bomb disposal unit.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:09:33
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -269,7 +155,6 @@ LOCATION  : Middle-Right
 MESSAGE   : KNIFE detected at Middle-Right with 81% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:11:38
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -279,7 +164,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 63% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:11:39
 LEVEL     : HIGH
 SOURCE    : bag_detector
@@ -289,7 +173,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : Unattended bag at Bottom-Center for 3 seconds. Potential threat.
 ACTION    : Do not touch. Clear area and contact bomb disposal unit.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:12:48
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -299,7 +182,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 63% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:13:48
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -309,7 +191,6 @@ LOCATION  : Bottom-Right
 MESSAGE   : GUN detected at Bottom-Right with 65% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:14:48
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -319,7 +200,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : KNIFE detected at Bottom-Center with 87% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:15:57
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -329,7 +209,6 @@ LOCATION  : Bottom-Right
 MESSAGE   : BLOOD detected at Bottom-Right with 78% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:17:22
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -339,7 +218,6 @@ LOCATION  : Bottom-Right
 MESSAGE   : BLOOD detected at Bottom-Right with 69% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:18:33
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -349,7 +227,6 @@ LOCATION  : Top-Left
 MESSAGE   : BLOOD detected at Top-Left with 78% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:19:27
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -359,7 +236,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 61% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:21:03
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -369,7 +245,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 60% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:22:09
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -379,7 +254,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 61% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:23:11
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -389,7 +263,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 65% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:24:11
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -399,7 +272,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 68% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:25:41
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -409,7 +281,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 65% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:26:50
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -419,7 +290,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 70% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:28:03
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -429,7 +299,6 @@ LOCATION  : Middle-Left
 MESSAGE   : KNIFE detected at Middle-Left with 61% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:36:25
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -439,7 +308,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 64% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:38:52
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -449,7 +317,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 63% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:39:52
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -459,7 +326,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 64% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:41:13
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -469,7 +335,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 71% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:42:07
 LEVEL     : HIGH
 SOURCE    : bag_detector
@@ -479,7 +344,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : Unattended bag at Bottom-Center for 3 seconds. Potential threat.
 ACTION    : Do not touch. Clear area and contact bomb disposal unit.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:42:14
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -489,7 +353,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 75% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:43:57
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -499,7 +362,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 74% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:47:00
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -509,7 +371,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 66% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:47:57
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -519,7 +380,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 64% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:49:14
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -529,7 +389,6 @@ LOCATION  : Bottom-Center
 MESSAGE   : GUN detected at Bottom-Center with 66% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:51:16
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -539,7 +398,6 @@ LOCATION  : Middle-Left
 MESSAGE   : KNIFE detected at Middle-Left with 66% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:54:41
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -549,7 +407,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 61% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 19:56:15
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -559,7 +416,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 61% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 20:04:02
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -569,7 +425,6 @@ LOCATION  : Middle-Center
 MESSAGE   : GUN detected at Middle-Center with 67% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
 
-============================================================
 TIMESTAMP : 2026-05-05 20:09:34
 LEVEL     : CRITICAL
 SOURCE    : weapon_detector
@@ -578,3 +433,11 @@ CONFIDENCE: 79%
 LOCATION  : Bottom-Center
 MESSAGE   : KNIFE detected at Bottom-Center with 79% confidence. Immediate threat.
 ACTION    : Evacuate area and contact armed response unit immediately.
+TIMESTAMP : 2026-04-30 15:00:18
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 78%
+LOCATION  : Middle-Left
+MESSAGE   : Unattended bag at Middle-Left for 30 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
