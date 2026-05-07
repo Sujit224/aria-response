@@ -37,6 +37,19 @@ export function getRoomId() {
     localStorage.setItem('aria_room_id', fromUrl)
     return fromUrl
   }
+  
+  const lastVenue = localStorage.getItem('aria_last_venue_id')
+  const currentVenue = getVenueId()
+  if (lastVenue && lastVenue !== currentVenue) {
+    localStorage.setItem('aria_last_venue_id', currentVenue)
+    localStorage.removeItem('aria_room_id')
+    localStorage.removeItem('aria_room_name')
+    return ''
+  }
+  if (!lastVenue && currentVenue) {
+    localStorage.setItem('aria_last_venue_id', currentVenue)
+  }
+
   return localStorage.getItem('aria_room_id') || ''
 }
 
@@ -73,9 +86,9 @@ export async function autoAssignTestRoom() {
   try {
     // Fetch all blocks, then floors, then pick a random occupied room
     // We use the admin map API to list blocks and pick one to look up floors
-    const blocksRes = await fetch(`${API}/map/blocks?hotel_id=auto`)
+    const blocksRes = await fetch(`${API}/map/blocks/auto`)
     // Fallback: directly query pois via map API
-    const poisRes = await fetch(`${API}/map/pois?type=room&limit=200`)
+    const poisRes = await fetch(`${API}/map/pois?type=room&limit=200&hotel_id=${venueId}`)
     if (!poisRes.ok) throw new Error('Cannot fetch rooms')
 
     const pois = await poisRes.json()

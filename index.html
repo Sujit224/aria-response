@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA - 3D Incident Command View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --panel-bg: rgba(20, 22, 28, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-red: #ff3b5c;
+            --accent-red-glow: rgba(255, 59, 92, 0.2);
+            --text-main: #f0f0f5;
+            --text-muted: #8b909f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* UI Overlays */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+            pointer-events: none; /* Pass events through to 3D scene */
+            display: flex;
+            padding: 32px;
+            gap: 24px;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            pointer-events: auto; /* Catch events for UI elements */
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar {
+            width: 360px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .status-badge {
+            background: var(--accent-red-glow);
+            color: var(--accent-red);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid rgba(255, 59, 92, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 59, 92, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 59, 92, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 59, 92, 0); }
+        }
+
+        .incident-list {
+            padding: 24px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .incident-list::-webkit-scrollbar { width: 4px; }
+        .incident-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        .incident-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .incident-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-red);
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .incident-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .incident-card:hover::before {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .card-location {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .card-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .controls-info {
+            position: absolute;
+            bottom: 32px;
+            right: 32px;
+            padding: 16px 24px;
+            border-radius: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .key {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: white;
+            font-family: monospace;
+        }
+
+        #tooltip {
+            position: absolute;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 100;
+            transform: translate(-50%, -120%);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .tooltip-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .tooltip-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-color);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s;
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-red);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        .floor-selector {
+            position: absolute;
+            right: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+            z-index: 20;
+        }
+
+        .floor-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .floor-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .floor-btn.active {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px var(--accent-red-glow);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+    </style>
+    <!-- Three.js + Addons via Import Map -->
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div class="loading-overlay" id="loading">
+        <div class="loader"></div>
+        <div style="font-size: 0.9rem; color: #8b909f; letter-spacing: 0.1em; text-transform: uppercase;">Initializing 3D Environment</div>
+    </div>
+
+    <!-- WebGL Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+        <div class="sidebar glass-panel">
+            <div class="header">
+                <h1>Facility Alpha</h1>
+                <div class="status-badge">Active Alerts</div>
+            </div>
+            <div class="incident-list" id="incident-list">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div class="controls-info glass-panel">
+            <div class="control-item">
+                <span class="key">Left Click</span> Rotate
+            </div>
+            <div class="control-item">
+                <span class="key">Right Click</span> Pan
+            </div>
+            <div class="control-item">
+                <span class="key">Scroll</span> Zoom
+            </div>
+        </div>
+
+        <!-- Floor Selector -->
+        <div class="floor-selector glass-panel" id="floor-selector">
+            <div class="floor-btn active" data-floor="all">ALL</div>
+            <div class="floor-btn" data-floor="5">F6</div>
+            <div class="floor-btn" data-floor="4">F5</div>
+            <div class="floor-btn" data-floor="3">F4</div>
+            <div class="floor-btn" data-floor="2">F3</div>
+            <div class="floor-btn" data-floor="1">F2</div>
+            <div class="floor-btn" data-floor="0">F1</div>
+        </div>
+    </div>
+
+    <!-- Hover Tooltip -->
+    <div id="tooltip"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // --- 1. Hardcoded Incident Data ---
+        const incidents = [
+            { 
+                id: 'INC-001', 
+                type: 'Fire Alert', 
+                floor: 2, // 3rd floor
+                roomId: 15,
+                desc: 'Smoke detector triggered in Server Room B. Temperature rising rapidly.',
+                severity: 'critical'
+            },
+            { 
+                id: 'INC-002', 
+                type: 'Medical Emergency', 
+                floor: 0, // 1st floor
+                roomId: 8, 
+                desc: 'Employee collapsed near main cafeteria entrance. CPR in progress.',
+                severity: 'high'
+            },
+            { 
+                id: 'INC-003', 
+                type: 'Security Breach', 
+                floor: 4, // 5th floor
+                roomId: 2, 
+                desc: 'Unauthorized access attempt at Executive Suite corridor.',
+                severity: 'medium'
+            }
+        ];
+
+        // --- Helper: Create Flat Text Label ---
+        function createTextPlane(text, isIncident, renderer) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 128;
+            
+            // Background
+            context.fillStyle = isIncident ? 'rgba(255, 0, 0, 0.25)' : 'rgba(0, 0, 0, 0.6)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            context.strokeStyle = isIncident ? '#ff3b5c' : 'rgba(255,255,255,0.15)';
+            context.lineWidth = 6;
+            context.strokeRect(0, 0, canvas.width, canvas.height);
+            
+            // Text
+            context.font = 'bold 36px Inter, sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillStyle = isIncident ? '#ff3b5c' : 'rgba(255, 255, 255, 0.8)';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            
+            const mat = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                transparent: true, 
+                depthWrite: false, // Prevents z-fighting issues
+            });
+            const geo = new THREE.PlaneGeometry(3, 1.5);
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = -Math.PI / 2;
+            return mesh;
+        }
+
+        // --- 2. Build UI ---
+        const listEl = document.getElementById('incident-list');
+        incidents.forEach((inc, index) => {
+            const card = document.createElement('div');
+            card.className = 'incident-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+            
+            const floorName = `Fl ${inc.floor + 1}`;
+            const roomNum = inc.roomId < 10 ? `0${inc.roomId}` : inc.roomId;
+            const roomName = `Room ${roomNum}`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${inc.type}</div>
+                    <div class="card-location">${floorName} - ${roomName}</div>
+                </div>
+                <div class="card-desc">${inc.desc}</div>
+            `;
+            
+            // Interaction to focus camera
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                focusOnIncident(inc);
+            });
+            
+            listEl.appendChild(card);
+        });
+
+        // --- 3. Three.js Setup ---
+        const container = document.getElementById('canvas-container');
+        
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2('#0f1115', 0.006);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(-120, 100, 150);
+
+        // WebGL Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        container.appendChild(renderer.domElement);
+
+        // Controls - Bind to the WebGL canvas
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; 
+        controls.minDistance = 20;
+        controls.maxDistance = 400;
+        controls.target.set(0, 15, 0);
+
+        // --- 4. Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xb4c8ff, 1.2); 
+        dirLight.position.set(60, 100, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.near = 10;
+        dirLight.shadow.camera.far = 300;
+        const d = 120;
+        dirLight.shadow.camera.left = -d;
+        dirLight.shadow.camera.right = d;
+        dirLight.shadow.camera.top = d;
+        dirLight.shadow.camera.bottom = -d;
+        scene.add(dirLight);
+
+        const fillLight = new THREE.DirectionalLight(0x8a2be2, 0.4); 
+        fillLight.position.set(-60, 30, -60);
+        scene.add(fillLight);
+
+        // --- 5. Environment generation ---
+        const groundGeo = new THREE.PlaneGeometry(600, 600);
+        const groundMat = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0a0c,
+            roughness: 0.2,
+            metalness: 0.8
+        });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        const gridHelper = new THREE.GridHelper(600, 150, 0x333344, 0x1a1a24);
+        gridHelper.position.y = 0.05;
+        scene.add(gridHelper);
+
+        // --- 6. Building Generation ---
+        const buildingGroup = new THREE.Group();
+        scene.add(buildingGroup);
+
+        const floors = 6;
+        const floorGroups = [];
+        for (let f = 0; f < floors; f++) {
+            const group = new THREE.Group();
+            group.userData = { floor: f };
+            buildingGroup.add(group);
+            floorGroups.push(group);
+        }
+
+        const roomsX = 2; // Two rows of rooms with corridor in between
+        const roomsZ = 11; // 10 actual rooms per side + 1 cross corridor = 20 rooms per floor
+        
+        const roomW = 12;
+        const roomH = 6;
+        const roomD = 10;
+        const corridorW = 10;
+        const gap = 0.5;
+
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0x223355,
+            metalness: 0.9,
+            roughness: 0.1,
+            envMapIntensity: 1.0,
+            transparent: true,
+            opacity: 0.4,
+            side: THREE.DoubleSide,
+        });
+
+        const slabMat = new THREE.MeshStandardMaterial({
+            color: 0x1a1a1a,
+            roughness: 0.9,
+            metalness: 0.1
+        });
+
+        const corridorMat = new THREE.MeshStandardMaterial({
+            color: 0x064e3b, // dark green
+            roughness: 0.9,
+            metalness: 0.1
+        });
+
+        const exitMat = new THREE.MeshStandardMaterial({
+            color: 0x10b981, // bright green
+            roughness: 0.6,
+            metalness: 0.2
+        });
+
+        const interactableRooms = [];
+        const incidentMarkers = [];
+        const incidentLights = [];
+
+        // Stairs config
+        const stairW = corridorW - 4; // 6 units wide
+        const stairD = 6;
+        const stairMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.7 }); // orange
+
+        // Precompute total sizes
+        const bWidth = (roomsX * roomW) + corridorW + (roomsX * gap);
+        const bDepth = (roomsZ * roomD) + ((roomsZ - 1) * gap); 
+
+        for (let f = 0; f < floors; f++) {
+            const floorY = f * roomH;
+
+            // Floor Slab
+            const slabGeo = new THREE.BoxGeometry(bWidth + 2, 0.4, bDepth + 2);
+            const slab = new THREE.Mesh(slabGeo, slabMat);
+            slab.position.set(0, floorY, 0);
+            slab.receiveShadow = true;
+            slab.castShadow = true;
+            floorGroups[f].add(slab);
+
+            // Main Corridor Floor (Z-axis length)
+            const corridorGeo = new THREE.BoxGeometry(corridorW, 0.42, bDepth);
+            const corridorMesh = new THREE.Mesh(corridorGeo, corridorMat);
+            corridorMesh.position.set(0, floorY, 0);
+            corridorMesh.receiveShadow = true;
+            floorGroups[f].add(corridorMesh);
+
+            // Cross Corridor Floor (X-axis width at z=5)
+            const crossCorridorGeo = new THREE.BoxGeometry(bWidth, 0.42, roomD + gap);
+            const crossCorridorMesh = new THREE.Mesh(crossCorridorGeo, corridorMat);
+            const crossOffsetZ = (5 - (roomsZ - 1) / 2) * (roomD + gap);
+            crossCorridorMesh.position.set(0, floorY, crossOffsetZ);
+            crossCorridorMesh.receiveShadow = true;
+            floorGroups[f].add(crossCorridorMesh);
+
+            // Add Stairs (3 distributed locations: front, middle, back)
+            if (f < floors - 1) {
+                const stepsCount = 12;
+                const stepH = roomH / stepsCount;
+                const stepD = stairD / stepsCount;
+                // Place stairs near the front, exact middle, and back of the corridor
+                const stairZs = [
+                    -bDepth / 2 + roomD + 2,
+                    crossOffsetZ, 
+                    bDepth / 2 - roomD - 2
+                ];
+
+                stairZs.forEach(zOffset => {
+                    for(let s = 0; s < stepsCount; s++) {
+                        const stepGeo = new THREE.BoxGeometry(stairW, stepH, stepD);
+                        const stepMesh = new THREE.Mesh(stepGeo, stairMat);
+                        // Shift them perfectly backward to simulate steps ascending
+                        stepMesh.position.set(0, floorY + (s * stepH) + stepH/2, zOffset - (s * stepD) + stairD/2);
+                        stepMesh.castShadow = true;
+                        stepMesh.receiveShadow = true;
+                        floorGroups[f].add(stepMesh);
+                    }
+                });
+            }
+
+            // Add Exits on Ground Floor
+            if (f === 0) {
+                const exitGeo = new THREE.BoxGeometry(corridorW - 2, roomH - 1, 1);
+                
+                // Exit Label Generator
+                const exitLabelGeo = new THREE.PlaneGeometry(3, 1);
+                const exitLabelCanvas = document.createElement('canvas');
+                exitLabelCanvas.width = 128; exitLabelCanvas.height = 64;
+                const ctx = exitLabelCanvas.getContext('2d');
+                ctx.fillStyle = '#10b981'; ctx.fillRect(0,0,128,64);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 32px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+                ctx.fillText('EXIT', 64, 32);
+                const exitLabelTexture = new THREE.CanvasTexture(exitLabelCanvas);
+                exitLabelTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                const exitLabelMat = new THREE.MeshBasicMaterial({ map: exitLabelTexture, transparent: true });
+
+                // 1. Front Main Exit
+                const exitFront = new THREE.Mesh(exitGeo, exitMat);
+                exitFront.position.set(0, floorY + roomH/2 - 0.5, -bDepth/2 + 0.5);
+                floorGroups[f].add(exitFront);
+                const exitFrontLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitFrontLabel.position.set(0, floorY + roomH + 0.1, -bDepth/2 + 1);
+                floorGroups[f].add(exitFrontLabel);
+                
+                // 2. Back Main Exit
+                const exitBack = new THREE.Mesh(exitGeo, exitMat);
+                exitBack.position.set(0, floorY + roomH/2 - 0.5, bDepth/2 - 0.5);
+                floorGroups[f].add(exitBack);
+                const exitBackLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitBackLabel.position.set(0, floorY + roomH + 0.1, bDepth/2 - 1);
+                exitBackLabel.rotation.y = Math.PI;
+                floorGroups[f].add(exitBackLabel);
+
+                // 3. Left Cross-Corridor Exit
+                const exitSideGeo = new THREE.BoxGeometry(1, roomH - 1, roomD - 2);
+                const exitLeft = new THREE.Mesh(exitSideGeo, exitMat);
+                exitLeft.position.set(-bWidth/2 + 0.5, floorY + roomH/2 - 0.5, crossOffsetZ);
+                floorGroups[f].add(exitLeft);
+                const exitLeftLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitLeftLabel.position.set(-bWidth/2 + 1, floorY + roomH + 0.1, crossOffsetZ);
+                exitLeftLabel.rotation.y = Math.PI / 2;
+                floorGroups[f].add(exitLeftLabel);
+
+                // 4. Right Cross-Corridor Exit
+                const exitRight = new THREE.Mesh(exitSideGeo, exitMat);
+                exitRight.position.set(bWidth/2 - 0.5, floorY + roomH/2 - 0.5, crossOffsetZ);
+                floorGroups[f].add(exitRight);
+                const exitRightLabel = new THREE.Mesh(exitLabelGeo, exitLabelMat);
+                exitRightLabel.position.set(bWidth/2 - 1, floorY + roomH + 0.1, crossOffsetZ);
+                exitRightLabel.rotation.y = -Math.PI / 2;
+                floorGroups[f].add(exitRightLabel);
+            }
+
+            // Rooms Generation (Left side 1-10, Right side 11-20)
+            let roomCounter = 1;
+            for (let x = 0; x < roomsX; x++) {
+                for (let z = 0; z < roomsZ; z++) {
+                    // Skip middle rooms to create physical cross-corridor intersection
+                    if (z === 5) continue;
+                    
+                    const roomId = roomCounter;
+                    roomCounter++;
+
+                    const isIncident = incidents.find(i => i.floor === f && i.roomId === roomId);
+                    
+                    const roomGeo = new THREE.BoxGeometry(roomW, roomH - 0.4, roomD);
+                    
+                    let material = glassMat;
+                    if (isIncident) {
+                        material = new THREE.MeshPhysicalMaterial({
+                            color: 0xff1133,
+                            metalness: 0.2,
+                            roughness: 0.2,
+                            transparent: true,
+                            opacity: 0.85,
+                            emissive: 0xff0022,
+                            emissiveIntensity: 0.5
+                        });
+                    }
+
+                    const roomMesh = new THREE.Mesh(roomGeo, material);
+
+                    let offsetX = (x - (roomsX - 1) / 2) * (roomW + gap);
+                    if (x >= roomsX / 2) offsetX += corridorW / 2;
+                    else offsetX -= corridorW / 2;
+
+                    const offsetZ = (z - (roomsZ - 1) / 2) * (roomD + gap);
+
+                    roomMesh.position.set(offsetX, floorY + roomH/2, offsetZ);
+                    
+                    // Windows / Outer Frames
+                    if (z === 0 || z === roomsZ - 1 || x === 0 || x === roomsX - 1) {
+                        const frameGeo = new THREE.BoxGeometry(roomW + 0.2, roomH - 0.6, roomD + 0.2);
+                        const edges = new THREE.EdgesGeometry(frameGeo);
+                        const frameLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ 
+                            color: isIncident ? 0xff4455 : 0x445577,
+                            transparent: true,
+                            opacity: 0.8
+                        }));
+                        roomMesh.add(frameLines);
+                        
+                        const paneGeo = new THREE.PlaneGeometry(roomW - 1, roomH - 1.5);
+                        const paneMat = new THREE.MeshPhysicalMaterial({
+                            color: 0x88bbff,
+                            transparent: true,
+                            opacity: 0.2,
+                            metalness: 1.0,
+                            roughness: 0.0,
+                            side: THREE.DoubleSide
+                        });
+                        
+                        if (z === 0) { 
+                            const pane = new THREE.Mesh(paneGeo, paneMat);
+                            pane.position.set(0, 0, -roomD/2 - 0.1);
+                            roomMesh.add(pane);
+                        }
+                        if (z === roomsZ - 1) { 
+                            const pane = new THREE.Mesh(paneGeo, paneMat);
+                            pane.position.set(0, 0, roomD/2 + 0.1);
+                            roomMesh.add(pane);
+                        }
+                        if (x === 0) {
+                            const paneLeft = new THREE.Mesh(paneGeo, paneMat);
+                            paneLeft.rotation.y = Math.PI / 2;
+                            paneLeft.position.set(-roomW/2 - 0.1, 0, 0);
+                            roomMesh.add(paneLeft);
+                        }
+                        if (x === roomsX - 1) {
+                            const paneRight = new THREE.Mesh(paneGeo, paneMat);
+                            paneRight.rotation.y = Math.PI / 2;
+                            paneRight.position.set(roomW/2 + 0.1, 0, 0);
+                            roomMesh.add(paneRight);
+                        }
+
+                    } else {
+                        const edges = new THREE.EdgesGeometry(roomGeo);
+                        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ 
+                            color: isIncident ? 0xff4455 : 0x334466,
+                            transparent: true,
+                            opacity: 0.4
+                        }));
+                        roomMesh.add(line);
+                    }
+
+                    // Metadata
+                    const floorName = `Fl ${f + 1}`;
+                    const roomNumStr = roomId < 10 ? `0${roomId}` : roomId;
+                    const fullName = `${floorName} - Room ${roomNumStr}`;
+                    
+                    roomMesh.userData = {
+                        isRoom: true,
+                        floor: f,
+                        roomId: roomId,
+                        name: fullName,
+                        incident: isIncident,
+                        baseMat: material
+                    };
+
+                    interactableRooms.push(roomMesh);
+                    floorGroups[f].add(roomMesh);
+
+                    // Canvas Flat Label
+                    const labelMesh = createTextPlane(fullName, isIncident, renderer);
+                    labelMesh.position.set(0, -roomH/2 + 0.3, 0); // Flat on the floor of the room
+                    roomMesh.add(labelMesh);
+
+                    // Incident Effects
+                    if (isIncident) {
+                        const ringGeo = new THREE.TorusGeometry(roomW/2, 0.2, 16, 100);
+                        const ringMat = new THREE.MeshBasicMaterial({ 
+                            color: 0xff3b5c, 
+                            transparent: true, 
+                            opacity: 0.8 
+                        });
+                        const ring = new THREE.Mesh(ringGeo, ringMat);
+                        ring.rotation.x = Math.PI / 2;
+                        ring.position.copy(roomMesh.position);
+                        ring.position.y += roomH/2 + 0.5;
+                        ring.userData = { baseY: ring.position.y };
+                        floorGroups[f].add(ring);
+                        incidentMarkers.push(ring);
+
+                        const pLight = new THREE.PointLight(0xff0033, 4, 25);
+                        pLight.position.copy(roomMesh.position);
+                        floorGroups[f].add(pLight);
+                        incidentLights.push(pLight);
+
+                        const beamMat = new THREE.MeshBasicMaterial({
+                            color: 0xff3b5c,
+                            transparent: true,
+                            opacity: 0.15,
+                            blending: THREE.AdditiveBlending,
+                            side: THREE.DoubleSide
+                        });
+                        const beamGeo = new THREE.CylinderGeometry(0.8, 0.8, 150, 8, 1, true);
+                        const beam = new THREE.Mesh(beamGeo, beamMat);
+                        beam.position.copy(roomMesh.position);
+                        beam.position.y += 75;
+                        floorGroups[f].add(beam);
+                    }
+                }
+            }
+        }
+
+        buildingGroup.position.y = 0.2;
+
+        // --- 7. Interactions ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const tooltip = document.getElementById('tooltip');
+        let hoveredObject = null;
+        
+        let isAnimatingCamera = false;
+        let targetCameraPos = new THREE.Vector3();
+        let targetControlsTarget = new THREE.Vector3();
+        let currentFloorFilter = 'all';
+
+        // Floor Visibility Logic
+        function updateFloorVisibility(floor) {
+            currentFloorFilter = floor;
+            
+            // Update UI
+            document.querySelectorAll('.floor-btn').forEach(btn => {
+                if (btn.dataset.floor === floor) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Update Scene
+            floorGroups.forEach((group, idx) => {
+                if (floor === 'all') {
+                    group.visible = true;
+                    // Reset opacity if we were doing ghosting (but here we just hide/show)
+                } else {
+                    group.visible = (idx === parseInt(floor));
+                }
+            });
+
+            // Adjust Camera if focusing on a floor
+            if (floor !== 'all') {
+                const fIdx = parseInt(floor);
+                const targetY = fIdx * roomH + (roomH / 2);
+                targetControlsTarget.set(0, targetY, 0);
+                
+                // Keep current horizontal angle but adjust height
+                const dist = controls.getDistance();
+                const polar = controls.getPolarAngle();
+                const azim = controls.getAzimuthalAngle();
+                
+                targetCameraPos.setFromSphericalCoords(dist, polar, azim);
+                targetCameraPos.add(targetControlsTarget);
+                
+                isAnimatingCamera = true;
+            } else {
+                // Reset to building center
+                targetControlsTarget.set(0, (floors * roomH) / 2, 0);
+                targetCameraPos.set(-120, 100, 150);
+                isAnimatingCamera = true;
+            }
+        }
+
+        // Add event listeners to floor buttons
+        document.getElementById('floor-selector').addEventListener('click', (e) => {
+            const btn = e.target.closest('.floor-btn');
+            if (btn) {
+                updateFloorVisibility(btn.dataset.floor);
+            }
+        });
+
+        // Mouse Move for Raycasting
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            // Crucial: pass 'false' to NOT intersect children like window panes or labels
+            const intersects = raycaster.intersectObjects(interactableRooms, false);
+
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                
+                if (hoveredObject !== object) {
+                    if (hoveredObject && !hoveredObject.userData.incident) {
+                        hoveredObject.material = hoveredObject.userData.baseMat;
+                    }
+
+                    hoveredObject = object;
+                    
+                    if (!hoveredObject.userData.incident) {
+                        const highlightMat = hoveredObject.userData.baseMat.clone();
+                        highlightMat.color.setHex(0x5577aa);
+                        highlightMat.emissive.setHex(0x112244);
+                        hoveredObject.material = highlightMat;
+                    }
+                }
+
+                // Show detailed Tooltip
+                tooltip.style.opacity = 1;
+                tooltip.style.left = e.clientX + 'px';
+                tooltip.style.top = (e.clientY - 15) + 'px';
+                
+                let html = `<div class="tooltip-title">${hoveredObject.userData.name}</div>`;
+                if (hoveredObject.userData.incident) {
+                    html += `
+                        <div class="tooltip-desc">${hoveredObject.userData.incident.desc}</div>
+                        <div class="tooltip-status" style="background:var(--accent-red-glow); color:var(--accent-red);">Critical Alert</div>
+                    `;
+                } else {
+                    html += `
+                        <div class="tooltip-desc">No active incidents. Room systems normal.</div>
+                        <div class="tooltip-status" style="background:rgba(46, 204, 113, 0.2); color:#2ecc71;">Clear</div>
+                    `;
+                }
+                tooltip.innerHTML = html;
+                document.body.style.cursor = 'pointer';
+            } else {
+                if (hoveredObject) {
+                    if (!hoveredObject.userData.incident) {
+                        hoveredObject.material = hoveredObject.userData.baseMat;
+                    }
+                    hoveredObject = null;
+                }
+                tooltip.style.opacity = 0;
+                document.body.style.cursor = 'default';
+            }
+        });
+
+        // Click on 3D object to focus
+        window.addEventListener('click', (e) => {
+            // Ignore if clicking on UI
+            if (e.target.closest('.glass-panel')) return;
+            
+            if (hoveredObject && hoveredObject.userData.incident) {
+                focusOnIncident(hoveredObject.userData.incident);
+            }
+        });
+
+        function focusOnIncident(inc) {
+            // Switch floor view if needed
+            if (currentFloorFilter !== 'all' && currentFloorFilter !== inc.floor.toString()) {
+                updateFloorVisibility(inc.floor.toString());
+            }
+
+            const roomMesh = interactableRooms.find(r => 
+                r.userData.floor === inc.floor && 
+                r.userData.roomId === inc.roomId
+            );
+
+            if (roomMesh) {
+                const targetPos = new THREE.Vector3();
+                roomMesh.getWorldPosition(targetPos);
+
+                targetControlsTarget.copy(targetPos);
+                
+                const angle = Math.atan2(camera.position.x - targetPos.x, camera.position.z - targetPos.z);
+                const distance = 80; 
+                targetCameraPos.set(
+                    targetPos.x + Math.sin(angle) * distance,
+                    targetPos.y + 40,
+                    targetPos.z + Math.cos(angle) * distance
+                );
+
+                isAnimatingCamera = true;
+                
+                const cards = document.querySelectorAll('.incident-card');
+                cards.forEach(c => {
+                    if(c.querySelector('.card-desc').textContent === inc.desc) {
+                        c.style.borderColor = 'var(--accent-red)';
+                        c.style.background = 'rgba(255, 59, 92, 0.1)';
+                    } else {
+                        c.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                        c.style.background = 'rgba(255, 255, 255, 0.03)';
+                    }
+                });
+            }
+        }
+
+        // --- 8. Animation Loop ---
+        // Use performance.now() or THREE.Timer for better results, 
+        // but for this legacy script we'll just keep the clock and handle the warning.
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+
+            if (isAnimatingCamera) {
+                camera.position.lerp(targetCameraPos, 0.05);
+                controls.target.lerp(targetControlsTarget, 0.05);
+                
+                if (camera.position.distanceTo(targetCameraPos) < 0.5) {
+                    isAnimatingCamera = false;
+                }
+            }
+
+            controls.update();
+
+            incidentMarkers.forEach((marker, i) => {
+                marker.rotation.z = time * 2;
+                marker.position.y = marker.userData.baseY + Math.sin(time * 3 + i) * 1.5;
+                const scale = 1 + Math.sin(time * 5 + i) * 0.2;
+                marker.scale.set(scale, scale, scale);
+            });
+
+            incidentLights.forEach((light, i) => {
+                light.intensity = 3 + Math.sin(time * 10 + i) * 2;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // --- 9. Initialization ---
+        window.onload = () => {
+            setTimeout(() => {
+                const loading = document.getElementById('loading');
+                if(loading) {
+                    loading.style.opacity = '0';
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        animate();
+                    }, 1000);
+                }
+            }, 500);
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>

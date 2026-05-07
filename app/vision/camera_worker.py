@@ -13,19 +13,9 @@ from app.vision.schemas import FrameDetection, BoundingBox
 from app.vision.pipeline_state import VisionPipelineState
 from app.vision.pipeline import vision_pipeline
 
-# YOLOv8 import — caught gracefully if ultralytics not installed
-try:
-    from ultralytics import YOLO
-    _yolo_available = True
-except ImportError:
-    _yolo_available = False
-    print("[VISION] ultralytics not installed — camera workers run in stub mode")
-
-try:
-    import cv2
-    _cv2_available = True
-except ImportError:
-    _cv2_available = False
+# YOLOv8 and cv2 will be imported lazily inside _run_sync to prevent startup hangs.
+_yolo_available = True  # We assume available if we try to import it
+_cv2_available = True
 
 
 INFERENCE_INTERVAL = 1.0   # seconds between frame reads
@@ -46,41 +36,43 @@ class CameraWorker:
 
     def __init__(
         self,
-        camera_id:  str,
-        stream_url: str,
-        venue_id:   str,
-        model_path: str = "yolov8n.pt",
+        camera_id:    str,
+        stream_url:   str,
+        venue_id:     str,
+        shared_model  = None,   # Pre-loaded YOLO model (injected by CameraManager)
     ):
-        self.camera_id  = camera_id
-        self.stream_url = stream_url
-        self.venue_id   = venue_id
-        self.model_path = model_path
-        self._stop      = asyncio.Event()
-        self._model     = None
-
-    def _load_model(self):
-        if not _yolo_available:
-            return None
-        model = YOLO(self.model_path)
-        model.fuse()   # optimise inference speed
-        return model
+        self.camera_id    = camera_id
+        self.stream_url   = stream_url
+        self.venue_id     = venue_id
+        self._model       = shared_model
+        self._stop        = asyncio.Event()
 
     async def start(self):
         """Start the inference loop in the thread pool executor."""
         self._stop.clear()
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._run_sync)
+        # Fire and forget into the executor pool
+        loop.run_in_executor(None, self._run_sync)
 
     def _run_sync(self):
         """Blocking loop — runs in thread pool executor."""
-        if not _cv2_available or not _yolo_available:
+        try:
+            import cv2
+            from ultralytics import YOLO
+        except ImportError:
             print(f"[VISION] {self.camera_id[:8]}: running in NO-OP stub mode (cv2/yolo missing)")
             return
 
-        self._model = self._load_model()
-        cap = cv2.VideoCapture(self.stream_url)
+        if self._model is None:
+            print(f"[VISION] {self.camera_id[:8]}: no model available — skipping")
+            return
+
+        # Firestore stores stream_url as a string.
+        # "0", "1", etc. → integer device index for cv2.VideoCapture (webcam).
+        source = int(self.stream_url) if self.stream_url.isdigit() else self.stream_url
+        cap = cv2.VideoCapture(source)
         if not cap.isOpened():
-            print(f"[VISION] Cannot open stream: {self.stream_url}")
+            print(f"[VISION] Stream unavailable (RTSP offline?): {self.stream_url}")
             return
 
         frame_count = 0

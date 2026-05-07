@@ -26,6 +26,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
     }),
   ],
   server: {
@@ -33,6 +37,9 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:8000', changeOrigin: true },
       '/ws':  { target: 'ws://localhost:8000',  changeOrigin: true, ws: true },
+    },
+    fs: {
+      allow: ['..']
     }
   }
 })

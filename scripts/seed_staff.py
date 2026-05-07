@@ -77,11 +77,11 @@ def _id():
     return str(uuid.uuid4())
 
 
-async def get_block_id(db, block_code: str):
-    """Fetch Firestore block doc id by block_code."""
+async def get_block_id(db, hotel_id: str, block_code: str):
+    """Fetch Firestore block doc id by block_code and hotel_id."""
     loop = asyncio.get_event_loop()
     docs = await loop.run_in_executor(None, lambda: list(
-        db.collection("blocks").where("block_code", "==", block_code).stream()
+        db.collection("blocks").where("hotel_id", "==", hotel_id).where("block_code", "==", block_code).stream()
     ))
     if docs:
         return docs[0].to_dict()["id"]
@@ -125,7 +125,7 @@ async def seed():
     # ── Security ───────────────────────────────────────────────────
     print("[+] Security Personnel:")
     for name, phone, block_code in SECURITY:
-        block_id = await get_block_id(db, block_code)
+        block_id = await get_block_id(db, hotel_id, block_code)
         doc = {
             "id":               _id(),
             "hotel_id":         hotel_id,
@@ -144,7 +144,7 @@ async def seed():
     # ── Floor Wardens ──────────────────────────────────────────────
     print("\n[+] Floor Wardens:")
     for name, phone, block_code, level in WARDENS:
-        block_id = await get_block_id(db, block_code)
+        block_id = await get_block_id(db, hotel_id, block_code)
         floor_id = await get_floor_id(db, block_id, level) if block_id else None
         doc = {
             "id":               _id(),
@@ -165,7 +165,7 @@ async def seed():
     # ── Medical Staff ──────────────────────────────────────────────
     print("\n[+] Medical Staff:")
     for name, phone, block_code in MEDICAL:
-        block_id = await get_block_id(db, block_code)
+        block_id = await get_block_id(db, hotel_id, block_code)
         doc = {
             "id":               _id(),
             "hotel_id":         hotel_id,
@@ -202,7 +202,7 @@ async def seed():
     # ── Supervisors ────────────────────────────────────────────────
     print("\n[+] Supervisors / Managers:")
     for name, phone, block_code in SUPERVISORS:
-        block_id = await get_block_id(db, block_code)
+        block_id = await get_block_id(db, hotel_id, block_code)
         doc = {
             "id":               _id(),
             "hotel_id":         hotel_id,

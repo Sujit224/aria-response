@@ -42,6 +42,12 @@ KEY RULE:
 import cv2
 import time
 import threading
+import os
+from dotenv import load_dotenv
+
+# Load environment variables (API keys, etc.)
+load_dotenv()
+
 from app.vision import config
 
 from app.vision.detectors.weapon_detector import WeaponDetector
@@ -51,6 +57,7 @@ from app.vision.detectors.scan_detector   import ScanDetector
 from app.vision.core.alert_queue          import AlertQueue
 from app.vision.core.logger               import ThreatLogger
 from app.vision.brain.agent               import ThreatAgent
+from app.vision.aria_bridge               import ARIABridge
 
 
 # ══════════════════════════════════════════════════
@@ -102,11 +109,12 @@ def draw_alert_banner(frame, message: str, level: str):
 #  LLM call blocking hai isliye main loop block na ho
 # ══════════════════════════════════════════════════
 class AlertProcessor(threading.Thread):
-    def __init__(self, queue: AlertQueue, agent: ThreatAgent, logger: ThreatLogger):
+    def __init__(self, queue: AlertQueue, agent: ThreatAgent, logger: ThreatLogger, bridge: ARIABridge):
         super().__init__(daemon=True)
         self.queue  = queue
         self.agent  = agent
         self.logger = logger
+        self.bridge = bridge
 
         # Main thread ke saath share karo (display ke liye)
         self.last_threat  = None   # {level, message, action, timestamp}
@@ -132,6 +140,10 @@ class AlertProcessor(threading.Thread):
                         self.last_alert_t = time.time()
                         self.total_alerts += 1
 
+                        # ── Push to ARIA Firestore pipeline ──
+                        # Runs in this background thread (creates its own event loop)
+                        self.bridge.dispatch(alert, result)
+
             time.sleep(0.1)   # CPU ko rest do
 
 
@@ -156,11 +168,12 @@ def main():
     alert_queue = AlertQueue()
     logger      = ThreatLogger()
     agent       = ThreatAgent()
+    bridge      = ARIABridge()
     print("      Pipeline ready ✅")
 
     # ── Step 3: Start background alert processor ──
     print("\n[3/5] Starting background alert processor...")
-    processor = AlertProcessor(alert_queue, agent, logger)
+    processor = AlertProcessor(alert_queue, agent, logger, bridge)
     processor.start()
     print("      Background thread started ✅")
 

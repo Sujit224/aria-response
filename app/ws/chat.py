@@ -17,8 +17,9 @@ class ConnectionManager:
         await ws.accept()
         self.active[session_id] = ws
 
-    def disconnect(self, session_id: str):
-        self.active.pop(session_id, None)
+    def disconnect(self, session_id: str, ws: WebSocket):
+        if self.active.get(session_id) == ws:
+            self.active.pop(session_id, None)
 
     async def send(self, session_id: str, data: dict):
         ws = self.active.get(session_id)
@@ -26,7 +27,7 @@ class ConnectionManager:
             try:
                 await ws.send_json(data)
             except Exception:
-                self.disconnect(session_id)
+                self.disconnect(session_id, ws)
 
 
 manager = ConnectionManager()
@@ -110,14 +111,17 @@ def _setup_dashboard_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio
     return ref.on_snapshot(_on_snapshot)
 
 
-async def _queue_forwarder(session_id: str, queue: asyncio.Queue):
+async def _queue_forwarder(websocket: WebSocket, queue: asyncio.Queue):
     """
     Continuously drains the asyncio Queue and forwards events to the WebSocket.
     Runs as an asyncio Task alongside the receive loop.
     """
     while True:
         data = await queue.get()
-        await manager.send(session_id, data)
+        try:
+            await websocket.send_json(data)
+        except Exception:
+            break
 
 
 async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str):
@@ -149,7 +153,7 @@ async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str)
         watches.append(_setup_staff_listener(venue_id, queue, loop))
         watches.append(_setup_dashboard_listener(venue_id, queue, loop))
 
-    forwarder_task = asyncio.create_task(_queue_forwarder(session_id, queue))
+    forwarder_task = asyncio.create_task(_queue_forwarder(websocket, queue))
 
     try:
         while True:
@@ -192,4 +196,4 @@ async def chat_ws_endpoint(websocket: WebSocket, session_id: str, venue_id: str)
                 watch.unsubscribe()
             except Exception:
                 pass
-        manager.disconnect(session_id)
+        manager.disconnect(session_id, websocket)

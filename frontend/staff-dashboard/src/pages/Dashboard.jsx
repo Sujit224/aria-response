@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { TopBar } from '../components/TopBar'
 import { IncidentCard } from '../components/IncidentCard'
 import { IncidentDetail } from '../components/IncidentDetail'
+import { Hotel3D } from '../components/Hotel3D'
+import Building3D from '../components/Building3D'
 import { useStaffSocket } from '../hooks/useStaffSocket'
 import { useLocationHeartbeat } from '../hooks/useLocationHeartbeat'
-import { getActiveIncidents } from '../lib/api'
+import { getActiveIncidents, getHotelBlocks } from '../lib/api'
 import { SEV_LABEL, T } from '../lib/constants'
 
 // Read from env or URL params
@@ -13,9 +15,11 @@ const STAFF_ID = import.meta.env.VITE_STAFF_ID || new URLSearchParams(location.s
 const FLOOR_ID = new URLSearchParams(location.search).get('floor') || ''
 const BLOCK_ID = new URLSearchParams(location.search).get('block') || ''
 
-export function Dashboard() {
+export function Dashboard({ onGoQR }) {
   const [incidents,  setIncidents]  = useState([])
+  const [blocks,     setBlocks]     = useState([])
   const [selected,   setSelected]   = useState(null)
+  const [selectedFloorId, setSelectedFloorId] = useState(null)
   const [liveBlocked, setLiveBlocked] = useState([])
   const [livePath,    setLivePath]    = useState([])
   const [wsStatus,    setWsStatus]    = useState('connecting')
@@ -28,14 +32,25 @@ export function Dashboard() {
   useEffect(() => {
     if (!VENUE_ID) return
     fetchIncidents()
+    fetchBlocks()
     const t = setInterval(fetchIncidents, 30_000)  // poll every 30s as fallback
     return () => clearInterval(t)
   }, [])
 
+  async function fetchBlocks() {
+    try {
+      const data = await getHotelBlocks(VENUE_ID)
+      setBlocks(data)
+    } catch (e) {
+      console.error('[ARIA] Fetch blocks failed:', e)
+    }
+  }
+
   async function fetchIncidents() {
     try {
       const data = await getActiveIncidents(VENUE_ID)
-      setIncidents(data)
+      // Normalize 'id' to 'incident_id' for consistency with WebSocket events
+      setIncidents(data.map(i => ({ ...i, incident_id: i.incident_id || i.id })))
     } catch (e) {
       console.error('[ARIA] Fetch incidents failed:', e)
     } finally {
@@ -60,7 +75,8 @@ export function Dashboard() {
         type:           data.type.toLowerCase(),
         severity:       data.severity === 'CRITICAL' ? 5 : data.severity === 'HIGH' ? 4 : 3,
         full_location:  data.full_location,
-        source:         'vision',
+        floor_id:       data.floor_id || '',
+        source:         data.source || 'vision',
         status:         'active',
         detected_at:    new Date().toISOString(),
         blocked_nodes:  data.blocked_nodes,
@@ -78,7 +94,9 @@ export function Dashboard() {
     setSelected(prev => {
       if (!prev && data.severity === 'CRITICAL') {
         return { incident_id: data.incident_id, type: data.type.toLowerCase(),
-          severity: 5, full_location: data.full_location, source: 'vision',
+          severity: 5, full_location: data.full_location,
+          floor_id: data.floor_id || '',
+          source: data.source || 'vision',
           status: 'active', detected_at: new Date().toISOString() }
       }
       return prev
@@ -121,8 +139,20 @@ export function Dashboard() {
 
   function handleSelect(incident) {
     setSelected(incident)
+    setSelectedFloorId(incident.floor_id)
     setLiveBlocked([])
     setLivePath([])
+  }
+
+  function handleFloorSelect(floorId) {
+    // If there is an incident on this floor, select it
+    const inc = incidents.find(i => i.floor_id === floorId)
+    if (inc) {
+      handleSelect(inc)
+    } else {
+      setSelected(null)
+      setSelectedFloorId(floorId)
+    }
   }
 
   function handleResolved(incidentId) {
@@ -143,26 +173,31 @@ export function Dashboard() {
         wsStatus      = {wsStatus}
         activeCount   = {incidents.length}
         criticalCount = {criticalCount}
+        onGoQR        = {onGoQR}
       />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
         {/* ── Left panel: incident list ──────────────────────── */}
         <div style={{
-          width: 300,
+          width: 320,
+          background: T.bgCard,
           borderRight: `1px solid ${T.border}`,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           flexShrink: 0,
+          zIndex: 10,
         }}>
           <div style={{
-            padding: '12px 16px 8px',
-            borderBottom: `0.5px solid ${T.border}`,
+            padding: '16px 20px 12px',
+            borderBottom: `1px solid ${T.border}`,
+            background: 'rgba(15, 23, 42, 0.8)',
+            backdropFilter: 'blur(8px)'
           }}>
             <div style={{
-              fontSize: 9, letterSpacing: 2, color: '#3b82f6',
-              fontFamily: T.mono, fontWeight: 600,
+              fontSize: 11, letterSpacing: 2, color: T.textDim,
+              fontFamily: T.sans, fontWeight: 700,
             }}>
               ACTIVE INCIDENTS
             </div>
@@ -192,16 +227,28 @@ export function Dashboard() {
               ))
             )}
           </div>
+
+          <Hotel3D
+            blocks={blocks}
+            incidents={incidents}
+            selected={selectedFloorId}
+            onSelect={handleFloorSelect}
+          />
         </div>
 
         {/* ── Right panel: incident detail ────────────────────── */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <IncidentDetail
-            incident        = {selected}
-            livePathUpdate  = {livePath}
-            liveBlockedNodes = {liveBlocked}
-            onResolved      = {handleResolved}
-          />
+          {selected || selectedFloorId ? (
+            <IncidentDetail
+              incident        = {selected}
+              floorId         = {selectedFloorId}
+              livePathUpdate  = {livePath}
+              liveBlockedNodes = {liveBlocked}
+              onResolved      = {handleResolved}
+            />
+          ) : (
+            <Building3D blocks={blocks} incidents={incidents} />
+          )}
         </div>
       </div>
     </div>

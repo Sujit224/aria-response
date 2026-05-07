@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { FloorMap } from './FloorMap'
+import { Floor3DMap } from '../../../shared/Floor3DMap'
 import { DispatchLog } from './DispatchLog'
+import { CameraView3D } from './CameraView3D'
+import { WebGLErrorBoundary } from './WebGLErrorBoundary'
 import { getIncident, getFloorMap, getFloorCameras, resolveIncident } from '../lib/api'
 import { SEV_COLOR, SEV_LABEL, THREAT_LABEL, THREAT_ICON, T } from '../lib/constants'
 
-export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onResolved }) {
+export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedNodes, onResolved }) {
   const [detail,   setDetail]   = useState(null)
   const [floorData, setFloor]   = useState(null)
   const [cameras,  setCameras]  = useState([])
@@ -13,12 +15,16 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
   const [loading,   setLoading]     = useState(true)
 
   useEffect(() => {
-    if (!incident) return
+    if (!incident && !floorId) return
     setLoading(true)
-    load()
-  }, [incident?.incident_id])
+    if (incident) {
+      loadIncident()
+    } else {
+      loadFloorOnly(floorId)
+    }
+  }, [incident?.incident_id, floorId])
 
-  async function load() {
+  async function loadIncident() {
     try {
       const [det, floor, cams] = await Promise.all([
         getIncident(incident.incident_id),
@@ -31,6 +37,23 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
       setCameras(cams || [])
     } catch (e) {
       console.error('[ARIA] Load incident detail failed:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function loadFloorOnly(fid) {
+    try {
+      const [floor, cams] = await Promise.all([
+        getFloorMap(fid),
+        getFloorCameras(fid),
+      ])
+      setFloor(floor)
+      setCameras(cams || [])
+      setDetail(null)
+      setDispatches([])
+    } catch (e) {
+      console.error('[ARIA] Load floor map failed:', e)
     } finally {
       setLoading(false)
     }
@@ -55,18 +78,8 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
     )
   }
 
-  if (!incident) return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      height: '100%', color: T.textDim, fontSize: 12,
-      fontFamily: T.mono, letterSpacing: 1,
-    }}>
-      SELECT AN INCIDENT
-    </div>
-  )
-
-  const sevLabel = SEV_LABEL[incident.severity] || 'MEDIUM'
-  const colors   = SEV_COLOR[sevLabel] || SEV_COLOR.MEDIUM
+  const sevLabel = incident ? (SEV_LABEL[incident.severity] || 'MEDIUM') : 'NORMAL'
+  const colors   = incident ? (SEV_COLOR[sevLabel] || SEV_COLOR.MEDIUM) : { bg: 'rgba(15, 23, 42, 0.9)', border: T.border, text: '#94a3b8', badge: 'rgba(255,255,255,0.1)', dot: '#94a3b8' }
 
   // Use live data from WebSocket if available, else fall back to DB data
   const blockedNodes = liveBlockedNodes?.length
@@ -86,48 +99,57 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
 
       {/* Header */}
       <div style={{
-        padding: '16px 20px',
-        background: colors.bg,
-        borderBottom: `1px solid ${colors.border}`,
+        padding: '20px 24px',
+        background: incident ? colors.bg : 'rgba(15, 23, 42, 0.9)',
+        borderBottom: `1px solid ${incident ? colors.border : T.border}`,
         position: 'sticky', top: 0, zIndex: 10,
+        backdropFilter: 'blur(10px)',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span style={{ fontSize: 18 }}>{THREAT_ICON[incident.type] || '⚠'}</span>
-              <span style={{ fontSize: 15, fontWeight: 600, color: colors.text }}>
-                {THREAT_LABEL[incident.type] || incident.type}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <span style={{ fontSize: 20 }}>{incident ? (THREAT_ICON[incident.type] || '⚠') : '🏢'}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: incident ? colors.text : '#fff', letterSpacing: 0.5 }}>
+                {incident ? (THREAT_LABEL[incident.type] || incident.type) : `FLOOR ${floorData?.level || ''} OVERVIEW`}
               </span>
-              <span style={{
-                fontSize: 10, background: colors.badge, color: '#fff',
-                padding: '2px 7px', borderRadius: 99, fontWeight: 700,
-              }}>
-                {sevLabel}
-              </span>
+              {incident && (
+                <span style={{
+                  fontSize: 10, background: colors.badge, color: '#fff',
+                  padding: '3px 10px', borderRadius: 99, fontWeight: 800,
+                  letterSpacing: 1, boxShadow: `0 0 10px ${colors.badge}44`
+                }}>
+                  {sevLabel}
+                </span>
+              )}
             </div>
-            <div style={{ fontSize: 12, color: colors.text, opacity: 0.8 }}>
-              {incident.full_location}
+            <div style={{ fontSize: 12, color: incident ? colors.text : T.textSub, opacity: 0.8, fontFamily: T.mono }}>
+              {incident ? incident.full_location : (floorData ? `${floorData.block_id} — LEVEL ${floorData.level}` : 'Loading floor data...')}
             </div>
           </div>
 
-          <button
-            onClick={handleResolve}
-            disabled={resolving}
-            style={{
-              padding: '7px 16px',
-              border: '0.5px solid rgba(34,197,94,0.4)',
-              borderRadius: 6,
-              background: 'rgba(34,197,94,0.1)',
-              color: '#86efac',
-              fontSize: 11,
-              fontFamily: T.mono,
-              cursor: resolving ? 'wait' : 'pointer',
-              letterSpacing: 1,
-              flexShrink: 0,
-            }}
-          >
-            {resolving ? 'RESOLVING...' : 'RESOLVE'}
-          </button>
+          {incident && (
+            <button
+              onClick={handleResolve}
+              disabled={resolving}
+              style={{
+                padding: '8px 20px',
+                border: '1px solid rgba(34,197,94,0.3)',
+                borderRadius: 8,
+                background: 'rgba(34,197,94,0.1)',
+                color: '#86efac',
+                fontSize: 11,
+                fontFamily: T.mono,
+                fontWeight: 700,
+                cursor: resolving ? 'wait' : 'pointer',
+                letterSpacing: 1.5,
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={e => e.target.style.background = 'rgba(34,197,94,0.2)'}
+              onMouseOut={e => e.target.style.background = 'rgba(34,197,94,0.1)'}
+            >
+              {resolving ? 'RESOLVING...' : 'MARK RESOLVED'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -138,7 +160,7 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
       ) : (
         <>
           {/* Suggested actions */}
-          {incident.suggested_actions?.length > 0 && (
+          {incident && incident.suggested_actions?.length > 0 && (
             <Section title="SUGGESTED ACTIONS">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {incident.suggested_actions.map((a, i) => (
@@ -165,47 +187,83 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
 
           {/* Floor map */}
           {floorData && (
-            <Section title={`FLOOR ${floorData.level} MAP — ${incident.full_location}`}>
-              <FloorMap
-                grid         = {floorData.static_grid}
-                pois         = {floorData.pois}
-                blockedNodes = {blockedNodes}
-                pathUpdate   = {pathUpdate}
-                cameras      = {cameras}
+            <Section title={`${incident ? 'TACTICAL' : 'GENERAL'} FLOOR MAP`}>
+              <Floor3DMap
+                incidentData={{
+                  static_grid: floorData.static_grid,
+                  grid_width: floorData.static_grid[0]?.length || 0,
+                  grid_height: floorData.static_grid.length,
+                  all_pois: floorData.pois,
+                  blocked_nodes: blockedNodes,
+                  path_update: pathUpdate,
+                  origin_poi_id: incident?.origin_poi_id,
+                }}
               />
             </Section>
           )}
 
+          {/* 3D Camera coverage view — shown for vision-sourced incidents */}
+          {incident.source === 'vision' && incident.floor_id && (
+            <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
+              <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
+                <WebGLErrorBoundary floorId={incident.floor_id}>
+                  <CameraView3D
+                    floorId={incident.floor_id}
+                    incident={incident}
+                  />
+                </WebGLErrorBoundary>
+              </div>
+            </Section>
+          )}
+
+          {/* For vision alerts without a floor_id on the incident, use the test camera floor */}
+          {incident.source === 'vision' && !incident.floor_id && (
+            <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
+              <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
+                <WebGLErrorBoundary floorId={floorData?.floor_id}>
+                  <CameraView3D
+                    floorId={floorData?.floor_id}
+                    incident={incident}
+                  />
+                </WebGLErrorBoundary>
+              </div>
+            </Section>
+          )}
+
           {/* Stats row */}
-          <Section title="INCIDENT DETAILS">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[
-                ['Source',    incident.source === 'chat' ? 'Guest report' : 'CCTV camera'],
-                ['Detected',  new Date(incident.detected_at).toLocaleTimeString()],
-                ['Status',    incident.status?.toUpperCase()],
-                ['Dispatches', dispatches.length],
-              ].map(([label, val]) => (
-                <div key={label} style={{
-                  background: T.bgCard,
-                  border: '0.5px solid rgba(59,130,246,0.1)',
-                  borderRadius: 8, padding: '10px 12px',
-                }}>
-                  <div style={{ fontSize: 10, color: T.textDim, marginBottom: 3,
-                    fontFamily: T.mono, letterSpacing: .5 }}>{label}</div>
-                  <div style={{ fontSize: 13, color: T.text, fontWeight: 500 }}>{val}</div>
-                </div>
-              ))}
-            </div>
-          </Section>
+          {incident && (
+            <Section title="INCIDENT DETAILS">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[
+                  ['Source',    incident.source === 'chat' ? 'Guest report' : 'CCTV camera'],
+                  ['Detected',  new Date(incident.detected_at).toLocaleTimeString()],
+                  ['Status',    incident.status?.toUpperCase()],
+                  ['Dispatches', dispatches.length],
+                ].map(([label, val]) => (
+                  <div key={label} style={{
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: 8, padding: '12px',
+                  }}>
+                    <div style={{ fontSize: 10, color: T.textDim, marginBottom: 4,
+                      fontFamily: T.mono, letterSpacing: .5, fontWeight: 600 }}>{label.toUpperCase()}</div>
+                    <div style={{ fontSize: 14, color: T.text, fontWeight: 500 }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
 
           {/* Dispatch log */}
-          <Section title="DISPATCH LOG">
-            <DispatchLog
-              incidentId = {incident.incident_id}
-              dispatches = {dispatches}
-              onAcked    = {handleAcked}
-            />
-          </Section>
+          {incident && (
+            <Section title="DISPATCH LOG">
+              <DispatchLog
+                incidentId = {incident.incident_id}
+                dispatches = {dispatches}
+                onAcked    = {handleAcked}
+              />
+            </Section>
+          )}
         </>
       )}
     </div>
@@ -214,10 +272,10 @@ export function IncidentDetail({ incident, livePathUpdate, liveBlockedNodes, onR
 
 function Section({ title, children }) {
   return (
-    <div style={{ padding: '16px 20px', borderBottom: '0.5px solid rgba(59,130,246,0.08)' }}>
+    <div style={{ padding: '24px 20px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
       <div style={{
-        fontSize: 9, fontFamily: 'monospace', letterSpacing: 2,
-        color: '#3b82f6', marginBottom: 12, fontWeight: 600,
+        fontSize: 10, fontFamily: T.mono, letterSpacing: 2,
+        color: '#64748b', marginBottom: 16, fontWeight: 700,
       }}>
         {title}
       </div>

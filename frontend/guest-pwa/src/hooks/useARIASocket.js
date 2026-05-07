@@ -49,8 +49,16 @@ export function useARIASocket({
   const connect = useCallback(() => {
     if (!venueId || !sessionId) return
     if (wsRef.current) {
-      wsRef.current.onclose = null
-      wsRef.current.close()
+      const oldWs = wsRef.current
+      oldWs.onclose = null
+      oldWs.onerror = null
+      if (oldWs.readyState === WebSocket.OPEN) {
+        oldWs.close()
+      } else if (oldWs.readyState === WebSocket.CONNECTING) {
+        oldWs.onopen = () => {
+          oldWs.close()
+        }
+      }
     }
 
     const ws = new WebSocket(`${WS_BASE}/ws/aria/${venueId}/${sessionId}`)
@@ -109,8 +117,17 @@ export function useARIASocket({
       clearTimeout(timerRef.current)
       clearInterval(keepAliveRef.current)
       if (wsRef.current) {
-        wsRef.current.onclose = null
-        wsRef.current.close()
+        const oldWs = wsRef.current
+        oldWs.onclose = null
+        oldWs.onerror = null
+        if (oldWs.readyState === WebSocket.OPEN) {
+          oldWs.close()
+        } else if (oldWs.readyState === WebSocket.CONNECTING) {
+          // Prevent the "closed before established" warning by waiting for open to close it
+          oldWs.onopen = () => {
+            oldWs.close()
+          }
+        }
       }
     }
   }, [connect])
