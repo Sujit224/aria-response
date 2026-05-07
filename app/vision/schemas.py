@@ -68,3 +68,4 @@ class VisionAlertPayload(BaseModel):
     zone_name:     str
     blocked_nodes: List[List[int]]
     path_update:   List[List[int]]
+    description:   str

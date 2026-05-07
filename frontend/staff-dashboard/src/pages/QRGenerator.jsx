@@ -13,10 +13,20 @@ export function QRGenerator({ onBack }) {
   useEffect(() => {
     async function fetchRooms() {
       try {
-        const res = await fetch(`${API}/map/pois?type=room&limit=200`)
+        const hotelId = VENUE_ID !== 'auto' ? VENUE_ID : ''
+        const params = new URLSearchParams({ type: 'room', limit: '200' })
+        if (hotelId) params.set('hotel_id', hotelId)
+        const res = await fetch(`${API}/map/pois?${params}`)
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
-        setRooms(data.filter(p => p.type === 'room'))
+        const rooms = data.filter(p => p.type === 'room')
+        // Sort by Block, then Floor, then Name
+        rooms.sort((a, b) => {
+          if (a.block_code !== b.block_code) return (a.block_code || '').localeCompare(b.block_code || '')
+          if (a.floor_level !== b.floor_level) return (a.floor_level || 0) - (b.floor_level || 0)
+          return (a.name || '').localeCompare(b.name || '')
+        })
+        setRooms(rooms)
       } catch (err) {
         console.error(err)
       } finally {
@@ -113,8 +123,13 @@ export function QRGenerator({ onBack }) {
                     {room.name}
                   </div>
                   <div style={{
-                    color: T.textDim, fontSize: 11, marginTop: 6, fontFamily: T.mono,
-                    wordBreak: 'break-all', textAlign: 'center', letterSpacing: 1
+                    color: T.textDim, fontSize: 13, marginTop: 4, fontFamily: T.sans, fontWeight: 500,
+                  }}>
+                    Block {room.block_code || '?'} • Floor {room.floor_level !== undefined ? room.floor_level : '?'}
+                  </div>
+                  <div style={{
+                    color: T.textDim, fontSize: 11, marginTop: 8, fontFamily: T.mono,
+                    wordBreak: 'break-all', textAlign: 'center', letterSpacing: 1, opacity: 0.5
                   }}>
                     ID: {room.id}
                   </div>

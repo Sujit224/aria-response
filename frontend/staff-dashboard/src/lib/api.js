@@ -3,6 +3,7 @@ const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 async function req(path, opts = {}) {
   const res = await fetch(`${API}${path}`, {
     headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
     ...opts,
   })
   if (!res.ok) {

@@ -88,7 +88,7 @@ export async function autoAssignTestRoom() {
     // We use the admin map API to list blocks and pick one to look up floors
     const blocksRes = await fetch(`${API}/map/blocks/auto`)
     // Fallback: directly query pois via map API
-    const poisRes = await fetch(`${API}/map/pois?type=room&limit=200`)
+    const poisRes = await fetch(`${API}/map/pois?type=room&limit=200&hotel_id=${venueId}`)
     if (!poisRes.ok) throw new Error('Cannot fetch rooms')
 
     const pois = await poisRes.json()

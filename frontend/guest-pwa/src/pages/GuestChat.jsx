@@ -41,11 +41,31 @@ export function GuestChat() {
   const [fcmReady,   setFcmReady]   = useState(false)
   const [roomId,     setRoomIdState]   = useState(() => getRoomId())
   const [roomName,   setRoomNameState] = useState(() => getRoomName() || 'Assigning room…')
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
   const bottomRef  = useRef(null)
   const inputRef   = useRef(null)
 
   const sessionId = getSessionId()
   const venueId   = getVenueId()
+
+  // ── Listen for PWA Install Prompt ──────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null)
+    }
+  }
 
   // ── Fetch room name if we have an ID but no name ───────────────
   useEffect(() => {
@@ -87,7 +107,8 @@ export function GuestChat() {
 
   const onThreatDetected = useCallback((data) => {
     // Build incident context for AlertBanner
-    setIncident({
+    setIncident(prev => ({
+      ...prev,
       incident_id:   data.incident_id,
       incident_type: data.type?.toLowerCase(),
       severity:      data.severity,
@@ -105,8 +126,8 @@ export function GuestChat() {
       room_name:     roomName,
       // steps will arrive via FCM push notification (data payload)
       // or via the chat ack message below
-      steps: data.steps || [],
-    })
+      steps: data.steps || prev?.steps || [],
+    }))
 
     const isMedical = data.type?.toLowerCase() === 'medical'
     const staffNames = data.assigned_staff_names && data.assigned_staff_names.length > 0 
@@ -205,7 +226,8 @@ export function GuestChat() {
           onMessage(messaging, (payload) => {
             const d = payload.data || {}
             if (d.incident_id) {
-              setIncident({
+              setIncident(prev => ({
+                ...prev,
                 incident_id:   d.incident_id,
                 incident_type: d.incident_type,
                 severity:      d.severity,
@@ -214,7 +236,7 @@ export function GuestChat() {
                 distance:      d.distance,
                 steps:         d.steps?.split('||').filter(Boolean) || [],
                 room_name:     roomName,
-              })
+              }))
             }
           })
         }
@@ -296,11 +318,26 @@ export function GuestChat() {
           <div style={{
             marginLeft: 'auto', fontSize: 9, color: '#22c55e',
             fontFamily: 'monospace', letterSpacing: 1,
-            background: 'rgba(34,197,94,0.1)', padding: '2px 7px',
+            background: 'rgba(34,197,94,0.1)', padding: '4px 8px',
             borderRadius: 99, border: '0.5px solid rgba(34,197,94,0.3)',
           }}>
             🔔 PUSH ON
           </div>
+        )}
+        {deferredPrompt && (
+          <button
+            onClick={handleInstallClick}
+            style={{
+              marginLeft: fcmReady ? 8 : 'auto', 
+              fontSize: 10, color: '#3b82f6', fontWeight: 'bold',
+              fontFamily: 'monospace', letterSpacing: 1,
+              background: 'rgba(59,130,246,0.1)', padding: '4px 10px',
+              borderRadius: 99, border: '0.5px solid rgba(59,130,246,0.3)',
+              cursor: 'pointer', outline: 'none'
+            }}
+          >
+            ⬇️ INSTALL
+          </button>
         )}
       </div>
 

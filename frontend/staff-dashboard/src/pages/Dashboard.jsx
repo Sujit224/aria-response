@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { TopBar } from '../components/TopBar'
 import { IncidentCard } from '../components/IncidentCard'
 import { IncidentDetail } from '../components/IncidentDetail'
+import { Hotel3D } from '../components/Hotel3D'
+import Building3D from '../components/Building3D'
 import { useStaffSocket } from '../hooks/useStaffSocket'
 import { useLocationHeartbeat } from '../hooks/useLocationHeartbeat'
-import { getActiveIncidents } from '../lib/api'
+import { getActiveIncidents, getHotelBlocks } from '../lib/api'
 import { SEV_LABEL, T } from '../lib/constants'
 
 // Read from env or URL params
@@ -15,7 +17,9 @@ const BLOCK_ID = new URLSearchParams(location.search).get('block') || ''
 
 export function Dashboard({ onGoQR }) {
   const [incidents,  setIncidents]  = useState([])
+  const [blocks,     setBlocks]     = useState([])
   const [selected,   setSelected]   = useState(null)
+  const [selectedFloorId, setSelectedFloorId] = useState(null)
   const [liveBlocked, setLiveBlocked] = useState([])
   const [livePath,    setLivePath]    = useState([])
   const [wsStatus,    setWsStatus]    = useState('connecting')
@@ -28,9 +32,19 @@ export function Dashboard({ onGoQR }) {
   useEffect(() => {
     if (!VENUE_ID) return
     fetchIncidents()
+    fetchBlocks()
     const t = setInterval(fetchIncidents, 30_000)  // poll every 30s as fallback
     return () => clearInterval(t)
   }, [])
+
+  async function fetchBlocks() {
+    try {
+      const data = await getHotelBlocks(VENUE_ID)
+      setBlocks(data)
+    } catch (e) {
+      console.error('[ARIA] Fetch blocks failed:', e)
+    }
+  }
 
   async function fetchIncidents() {
     try {
@@ -61,7 +75,8 @@ export function Dashboard({ onGoQR }) {
         type:           data.type.toLowerCase(),
         severity:       data.severity === 'CRITICAL' ? 5 : data.severity === 'HIGH' ? 4 : 3,
         full_location:  data.full_location,
-        source:         'vision',
+        floor_id:       data.floor_id || '',
+        source:         data.source || 'vision',
         status:         'active',
         detected_at:    new Date().toISOString(),
         blocked_nodes:  data.blocked_nodes,
@@ -79,7 +94,9 @@ export function Dashboard({ onGoQR }) {
     setSelected(prev => {
       if (!prev && data.severity === 'CRITICAL') {
         return { incident_id: data.incident_id, type: data.type.toLowerCase(),
-          severity: 5, full_location: data.full_location, source: 'vision',
+          severity: 5, full_location: data.full_location,
+          floor_id: data.floor_id || '',
+          source: data.source || 'vision',
           status: 'active', detected_at: new Date().toISOString() }
       }
       return prev
@@ -122,8 +139,20 @@ export function Dashboard({ onGoQR }) {
 
   function handleSelect(incident) {
     setSelected(incident)
+    setSelectedFloorId(incident.floor_id)
     setLiveBlocked([])
     setLivePath([])
+  }
+
+  function handleFloorSelect(floorId) {
+    // If there is an incident on this floor, select it
+    const inc = incidents.find(i => i.floor_id === floorId)
+    if (inc) {
+      handleSelect(inc)
+    } else {
+      setSelected(null)
+      setSelectedFloorId(floorId)
+    }
   }
 
   function handleResolved(incidentId) {
@@ -198,16 +227,28 @@ export function Dashboard({ onGoQR }) {
               ))
             )}
           </div>
+
+          <Hotel3D
+            blocks={blocks}
+            incidents={incidents}
+            selected={selectedFloorId}
+            onSelect={handleFloorSelect}
+          />
         </div>
 
         {/* ── Right panel: incident detail ────────────────────── */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <IncidentDetail
-            incident        = {selected}
-            livePathUpdate  = {livePath}
-            liveBlockedNodes = {liveBlocked}
-            onResolved      = {handleResolved}
-          />
+          {selected || selectedFloorId ? (
+            <IncidentDetail
+              incident        = {selected}
+              floorId         = {selectedFloorId}
+              livePathUpdate  = {livePath}
+              liveBlockedNodes = {liveBlocked}
+              onResolved      = {handleResolved}
+            />
+          ) : (
+            <Building3D blocks={blocks} incidents={incidents} />
+          )}
         </div>
       </div>
     </div>
