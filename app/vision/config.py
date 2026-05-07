@@ -42,9 +42,9 @@ SCAN_TRIGGER_CLASSES = [
 #  CONFIDENCE THRESHOLDS
 # ══════════════════════════════════════════
 CONFIDENCE = {
-    "weapon": 0.75,   # Higher threshold for fewer false positives
+    "weapon": 0.85,   # Higher threshold for fewer false positives
     "smoke":  0.75,   # Same as weapon - only confident detections
-    "bag":    0.50,   # Balanced for bag recall vs precision
+    "bag":    0.70,   # Balanced for bag recall vs precision
     "scan":   0.65,   # Scanner ke liye thoda high (false positive dangerous)
 }
 
@@ -56,7 +56,7 @@ CONFIDENCE = {
 WEAPON_INSTANT_TRIGGER = True
 
 # Smoke: 3 consecutive frames mein dike tab trigger
-SMOKE_CONSECUTIVE_FRAMES = 3
+SMOKE_CONSECUTIVE_FRAMES = 2
 
 # Bag: Kitne seconds tak stationary rahe tab trigger
 BAG_STATIC_SECONDS = 30
@@ -66,7 +66,7 @@ BAG_STATIC_SECONDS = 30
 BAG_MIN_ALERT_CONFIDENCE = 0.50
 
 # Scanner: Device connected hai ya nahi
-SCANNER_CONNECTED = False     # True karo jab scanner attach karo
+SCANNER_CONNECTED = True     # True karo jab scanner attach karo
 
 # ══════════════════════════════════════════
 #  ALERT / TOKEN SAVING SETTINGS
@@ -74,10 +74,10 @@ SCANNER_CONNECTED = False     # True karo jab scanner attach karo
 
 # Ek hi type ka alert kitne seconds baad dobara bheja jaye
 ALERT_COOLDOWN_SECONDS = {
-    "weapon": 60,    # 1 minute
-    "smoke":  45,    # 45 seconds
-    "bag":    120,   # 2 minutes
-    "scan":   60,    # 1 minute
+    "weapon": 10,    # 1 minute
+    "smoke":  10,    # 45 seconds
+    "bag":    30,   # 2 minutes
+    "scan":   30,    # 1 minute
 }
 
 # ══════════════════════════════════════════

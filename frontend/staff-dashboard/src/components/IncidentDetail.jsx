@@ -6,7 +6,7 @@ import { WebGLErrorBoundary } from './WebGLErrorBoundary'
 import { getIncident, getFloorMap, getFloorCameras, resolveIncident } from '../lib/api'
 import { SEV_COLOR, SEV_LABEL, THREAT_LABEL, THREAT_ICON, T } from '../lib/constants'
 
-export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedNodes, onResolved }) {
+export function IncidentDetail({ incident, floorId, livePathUpdate, liveDangerPath, liveBlockedNodes, onResolved, onClose }) {
   const [detail,   setDetail]   = useState(null)
   const [floorData, setFloor]   = useState(null)
   const [cameras,  setCameras]  = useState([])
@@ -84,7 +84,7 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
   // Use live data from WebSocket if available, else fall back to DB data
   const blockedNodes = liveBlockedNodes?.length
     ? liveBlockedNodes
-    : (detail?.alerts?.[0]?.blocked_nodes || [])
+    : (detail?.incident?.blocked_nodes || detail?.alerts?.[0]?.blocked_nodes || [])
 
   const pathUpdate = livePathUpdate?.length
     ? livePathUpdate
@@ -130,7 +130,7 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
           {incident && (
             <button
               onClick={handleResolve}
-              disabled={resolving}
+              disabled={resolving || !incident}
               style={{
                 padding: '8px 20px',
                 border: '1px solid rgba(34,197,94,0.3)',
@@ -140,9 +140,11 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
                 fontSize: 11,
                 fontFamily: T.mono,
                 fontWeight: 700,
-                cursor: resolving ? 'wait' : 'pointer',
+                cursor: (resolving || !incident) ? 'wait' : 'pointer',
                 letterSpacing: 1.5,
                 transition: 'all 0.2s',
+                opacity: (resolving || !incident) ? 0.5 : 1,
+                marginRight: 10,
               }}
               onMouseOver={e => e.target.style.background = 'rgba(34,197,94,0.2)'}
               onMouseOut={e => e.target.style.background = 'rgba(34,197,94,0.1)'}
@@ -150,6 +152,33 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
               {resolving ? 'RESOLVING...' : 'MARK RESOLVED'}
             </button>
           )}
+
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 16px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8,
+              background: 'rgba(255,255,255,0.05)',
+              color: '#94a3b8',
+              fontSize: 10,
+              fontFamily: T.mono,
+              fontWeight: 700,
+              cursor: 'pointer',
+              letterSpacing: 1,
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={e => {
+              e.target.style.background = 'rgba(255,255,255,0.1)'
+              e.target.style.color = '#fff'
+            }}
+            onMouseOut={e => {
+              e.target.style.background = 'rgba(255,255,255,0.05)'
+              e.target.style.color = '#94a3b8'
+            }}
+          >
+            CLOSE / BACK TO HOTEL
+          </button>
         </div>
       </div>
 
@@ -196,6 +225,7 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
                   all_pois: floorData.pois,
                   blocked_nodes: blockedNodes,
                   path_update: pathUpdate,
+                  danger_path: liveDangerPath || [],
                   origin_poi_id: incident?.origin_poi_id,
                 }}
               />
@@ -203,7 +233,7 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
           )}
 
           {/* 3D Camera coverage view — shown for vision-sourced incidents */}
-          {incident.source === 'vision' && incident.floor_id && (
+          {incident?.source === 'vision' && incident?.floor_id && (
             <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
               <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
                 <WebGLErrorBoundary floorId={incident.floor_id}>
@@ -217,7 +247,7 @@ export function IncidentDetail({ incident, floorId, livePathUpdate, liveBlockedN
           )}
 
           {/* For vision alerts without a floor_id on the incident, use the test camera floor */}
-          {incident.source === 'vision' && !incident.floor_id && (
+          {incident?.source === 'vision' && !incident?.floor_id && (
             <Section title="CAMERA COVERAGE — 3D FLOOR VIEW">
               <div style={{ height: 480, borderRadius: 10, overflow: 'hidden' }}>
                 <WebGLErrorBoundary floorId={floorData?.floor_id}>

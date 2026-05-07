@@ -98,3 +98,33 @@ def reroute(
     blocked = [tuple(n) for n in blocked_nodes]
     path = astar(grid, guest_pos, exit_pos, blocked)
     return [[p[0], p[1]] for p in path]
+
+
+def get_nearest_unblocked_exit(
+    exits: List[dict],
+    guest_x: int, guest_y: int,
+    blocked_set: set,
+) -> dict:
+    """Find the closest safe exit that is not itself a blocked node."""
+    valid = [
+        e for e in exits
+        if (e["coord_x"], e["coord_y"]) not in blocked_set
+    ]
+    if not valid:
+        valid = exits  # all blocked — edge case, use any exit
+    return min(valid, key=lambda e: abs(e["coord_x"] - guest_x) + abs(e["coord_y"] - guest_y))
+
+
+def get_nearest_blocked_exit(
+    exits: List[dict],
+    guest_x: int, guest_y: int,
+    blocked_set: set,
+) -> dict | None:
+    """Find the closest exit that IS blocked by hazards."""
+    blocked = [
+        e for e in exits
+        if (e["coord_x"], e["coord_y"]) in blocked_set
+    ]
+    if not blocked:
+        return None
+    return min(blocked, key=lambda e: abs(e["coord_x"] - guest_x) + abs(e["coord_y"] - guest_y))

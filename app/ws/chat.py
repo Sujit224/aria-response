@@ -52,9 +52,10 @@ def _setup_session_listener(session_id: str, queue: asyncio.Queue, loop: asyncio
     start_time = datetime.utcnow().isoformat()
 
     def _on_snapshot(col_snapshot, changes, read_time):
+        from app.db.collections import _unflatten_arrays
         for change in changes:
             if change.type.name == "ADDED":
-                data = change.document.to_dict()
+                data = _unflatten_arrays(change.document.to_dict())
                 if data.get("_ts", "") >= start_time:
                     asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 
@@ -80,7 +81,8 @@ def _setup_staff_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio.Abs
     def _on_snapshot(col_snapshot, changes, read_time):
         for change in changes:
             if change.type.name == "ADDED":
-                data = change.document.to_dict()
+                from app.db.collections import _unflatten_arrays
+                data = _unflatten_arrays(change.document.to_dict())
                 if data.get("_ts", "") >= start_time:
                     asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 
@@ -104,7 +106,8 @@ def _setup_dashboard_listener(venue_id: str, queue: asyncio.Queue, loop: asyncio
     def _on_snapshot(col_snapshot, changes, read_time):
         for change in changes:
             if change.type.name == "ADDED":
-                data = change.document.to_dict()
+                from app.db.collections import _unflatten_arrays
+                data = _unflatten_arrays(change.document.to_dict())
                 if data.get("_ts", "") >= start_time:
                     asyncio.run_coroutine_threadsafe(queue.put(data), loop)
 

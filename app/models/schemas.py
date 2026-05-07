@@ -88,6 +88,7 @@ class ZoneResolution(BaseModel):
     nearest_exit_coord: Coord
     nearest_aid_kit: str
     evacuation_path: List[Coord]        # A* result
+    danger_path: List[Coord] = []       # Red path to blocked exit
     blocked_nodes: List[Coord]          # hazard overlay for frontend
     staff_on_floor: List[str]
     assigned_staff_names: List[str]     # names of staff assigned to this incident
@@ -154,6 +155,7 @@ class ThreatDetectedPayload(BaseModel):
     full_location: str
     blocked_nodes: List[List[int]]      # [[x,y], ...]
     path_update: List[List[int]]        # [[x,y], ...] A* green path
+    danger_path: List[List[int]] = []    # [[x,y], ...] Red path to blocked exit
     assigned_staff_names: List[str] = []
     static_grid: List[List[int]] = []
     grid_width: int = 0

@@ -66,6 +66,27 @@ class ARIABridge:
             firebase.initialize()
             self._initialized = True
 
+    def _calculate_blocked_nodes(self, location_str: str, base_x: int, base_y: int) -> list:
+        """Translate vision region string (e.g. 'Top-Left') into grid coordinates."""
+        nodes = []
+        offset_x = 0
+        offset_y = 0
+
+        # Adjust center based on the relative quadrant detected by YOLO
+        if "Left" in location_str:   offset_x = -4
+        if "Right" in location_str:  offset_x = 4
+        if "Top" in location_str:    offset_y = -3
+        if "Bottom" in location_str: offset_y = 3
+
+        cx = max(2, min(21, base_x + offset_x))
+        cy = max(2, min(9,  base_y + offset_y))
+
+        # Create a 3x3 cluster of blocked nodes
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                nodes.append({"x": cx + dx, "y": cy + dy})
+        return nodes
+
     def dispatch(self, alert: dict, threat_result: dict):
         """
         Called synchronously from the AlertProcessor background thread.
@@ -86,8 +107,9 @@ class ARIABridge:
         from app.db.firebase import get_db
 
         db         = get_db()
+        # ── Setup metadata ───────────────────────────────────────────────
+        ts = datetime.utcnow().isoformat() + "Z"
         loop       = asyncio.get_event_loop()
-        ts         = datetime.utcnow().isoformat()
         incident_id = str(uuid.uuid4())
 
         venue_id   = DEFAULT_VENUE_ID
@@ -98,15 +120,48 @@ class ARIABridge:
         location   = alert.get("location", "Unknown")
         severity   = _SEVERITY_MAP.get(threat_result.get("threat_level", "HIGH"), "HIGH")
         threat_type = _TYPE_MAP.get(source_str, "security")
-        full_location = f"{room_name} — {location}"
-        message    = threat_result.get("threat_message",
-                     f"{det_type} detected at {full_location}")
 
-        # ── Look up floor_id from camera Firestore doc ────────────────────
-        cam_doc_ref = db.collection("cameras").document("test-cam-001")
+        # ── Look up floor, block and coords from camera Firestore doc ──────
+        cam_id = alert.get("camera_id", "test-cam-001")
+        cam_doc_ref = db.collection("cameras").document(cam_id)
         cam_snap = await loop.run_in_executor(None, cam_doc_ref.get)
         cam_data = cam_snap.to_dict() if cam_snap.exists else {}
+        
         floor_id_for_incident = cam_data.get("floor_id", "")
+        block_id_for_incident = cam_data.get("block_id", "")
+        base_x = cam_data.get("coord_x", 12)
+        base_y = cam_data.get("coord_y", 6)
+
+        # Enrich with real block/floor names
+        block_code = "C"
+        floor_level = "2"
+        if block_id_for_incident:
+            b_snap = await loop.run_in_executor(None, db.collection("blocks").document(block_id_for_incident).get)
+            if b_snap.exists: block_code = b_snap.to_dict().get("block_code", "C")
+        if floor_id_for_incident:
+            f_snap = await loop.run_in_executor(None, db.collection("floors").document(floor_id_for_incident).get)
+            if f_snap.exists: floor_level = str(f_snap.to_dict().get("level", "2"))
+
+        # Format descriptive location string
+        cam_label = cam_id.replace("test-cam-", "CAM-").upper()
+        full_location = f"{cam_label} | Block {block_code} | Floor {floor_level} | {room_name} — {location}"
+        
+        discovery_time = datetime.now().strftime("%H:%M:%S")
+        message    = threat_result.get("threat_message", f"{det_type} detected at {full_location}")
+        # Ensure discovery time is prominently appended
+        if discovery_time not in message:
+            message = f"{message} [Discovered: {discovery_time}]"
+
+        base_x = cam_data.get("coord_x", 12)
+        base_y = cam_data.get("coord_y", 6)
+
+        # ── Calculate blocked nodes for map highlighting ──
+        # Returns list of {"x":, "y":}
+        raw_blocked = self._calculate_blocked_nodes(location, base_x, base_y)
+        # Format for WebSocket payload [[x,y], ...]
+        blocked_nodes = [[n["x"], n["y"]] for n in raw_blocked]
+
+        from app.db.collections import _flatten_arrays
 
         # ── 1. Save incident document ────────────────────────────────────
         incident_doc = {
@@ -117,66 +172,53 @@ class ARIABridge:
             "floor_id":     floor_id_for_incident,
             "type":         threat_type,
             "severity":     severity,
-            "status":       "ACTIVE",
+            "status":       "active",
             "source":       "vision",
+            "full_location": full_location,
             "description":  message,
+            "blocked_nodes": blocked_nodes,
             "assigned_staff_names": [],
             "created_at":   ts,
+            "detected_at":  ts,
             "updated_at":   ts,
             "_ts":          ts,
         }
         await loop.run_in_executor(
             None,
-            lambda: db.collection("incidents").document(incident_id).set(incident_doc)
+            lambda: db.collection("incidents").document(incident_id).set(_flatten_arrays(incident_doc))
         )
 
         # ── 2. Payload for dashboard & staff events ──────────────────────
+        base_data = {
+            "incident_id":   incident_id,
+            "type":          threat_type,
+            "severity":      severity,
+            "room_id":       room_id,
+            "floor_id":      floor_id_for_incident,
+            "full_location": full_location,
+            "description":   message,
+            "blocked_nodes": blocked_nodes,
+            "detected_at":   ts,
+            "source":        "vision",
+            "_ts":           ts,
+        }
+
         threat_event = {
-            "_ts":   ts,
             "event": "THREAT_DETECTED",
-            "data": {
-                "incident_id":   incident_id,
-                "type":          det_type,
-                "severity":      severity,
-                "zone_name":     room_name,
-                "full_location": full_location,
-                "floor_id":      floor_id_for_incident,
-                "blocked_nodes": [],
-                "path_update":   [],
-                "source":        "vision",
-                "room_id":       room_id,
-                "message":       message,
-            },
+            "data":  base_data,
+            "_ts":   ts,
         }
 
         staff_event = {
-            "_ts":   ts,
             "event": "STAFF_ALERT",
-            "data": {
-                "incident_id":   incident_id,
-                "severity":      severity,
-                "threat_type":   threat_type,
-                "full_location": full_location,
-                "message":       message,
-                "timestamp":     ts,
-                "source":        "vision",
-                "camera_source": source_str,
-                "detection":     det_type,
-            },
+            "data":  {**base_data, "message": f"ALERT: {message}"},
+            "_ts":   ts,
         }
 
         dashboard_event = {
-            "_ts":   ts,
             "event": "INCIDENT_UPDATE",
-            "data": {
-                "incident_id":   incident_id,
-                "severity":      severity,
-                "threat_type":   threat_type,
-                "full_location": full_location,
-                "source":        "vision",
-                "timestamp":     ts,
-                "status":        "ACTIVE",
-            },
+            "data":  base_data,
+            "_ts":   ts,
         }
 
         # ── 3. Publish to Firestore realtime channels ────────────────────
@@ -191,9 +233,9 @@ class ARIABridge:
               .collection("dashboard_events")
         )
 
-        await loop.run_in_executor(None, lambda: ev_ref.add({**threat_event}))
-        await loop.run_in_executor(None, lambda: ev_ref.add({**staff_event}))
-        await loop.run_in_executor(None, lambda: dash_ref.add({**dashboard_event}))
+        await loop.run_in_executor(None, lambda: ev_ref.add(_flatten_arrays({**threat_event})))
+        await loop.run_in_executor(None, lambda: ev_ref.add(_flatten_arrays({**staff_event})))
+        await loop.run_in_executor(None, lambda: dash_ref.add(_flatten_arrays({**dashboard_event})))
 
         print(f"  [ARIABridge] OK: Alert published -> Firestore | incident={incident_id[:8]}...")
         print(f"  [ARIABridge]    {severity} {det_type} at {full_location}")

@@ -45,13 +45,15 @@ function FloorSlab({ floor, index, totalFloors, incidentsOnFloor }) {
       <group>
         {floor.pois?.map((poi) => {
           const isExit = poi.type === 'exit' || poi.type === 'stairwell'
-          const poiIncidents = incidentsOnFloor.filter(inc => inc.origin_poi_id === poi.id)
+          const poiIncidents = incidentsOnFloor.filter(inc => 
+            inc.origin_poi_id === poi.id || inc.room_id === poi.id
+          )
           const isPoiDanger = poiIncidents.length > 0
+          const hasVisionAlert = poiIncidents.some(inc => inc.source === 'vision')
 
           const x = (poi.coord_x + offsetX) * scale + (scale / 2)
           const z = (poi.coord_y + offsetZ) * scale + (scale / 2)
           
-          // Rooms are flat, filling the grid cell
           const roomWidth = scale * 0.95
           const roomHeight = 1.2
           const roomDepth = scale * 0.95
@@ -62,13 +64,30 @@ function FloorSlab({ floor, index, totalFloors, incidentsOnFloor }) {
               <mesh>
                 <boxGeometry args={[roomWidth, roomHeight, roomDepth]} />
                 <meshStandardMaterial 
-                  color={isExit ? '#10b981' : (isPoiDanger ? '#ef4444' : '#3b82f6')} 
+                  color={isExit ? '#10b981' : (isPoiDanger ? (hasVisionAlert ? '#f43f5e' : '#ef4444') : '#3b82f6')} 
                   transparent 
                   opacity={isPoiDanger ? 0.6 : 0.2} 
-                  emissive={isExit ? '#10b981' : (isPoiDanger ? '#ef4444' : '#3b82f6')}
+                  emissive={isExit ? '#10b981' : (isPoiDanger ? (hasVisionAlert ? '#f43f5e' : '#ef4444') : '#3b82f6')}
                   emissiveIntensity={isPoiDanger ? 0.8 : 0.2}
                 />
               </mesh>
+
+              {/* Special CCTV Scanner Aura */}
+              {hasVisionAlert && (
+                <Float speed={5} rotationIntensity={0} floatIntensity={0.5}>
+                  <mesh rotation={[Math.PI/2, 0, 0]} position={[0, -0.4, 0]}>
+                    <ringGeometry args={[scale * 0.5, scale * 1.5, 32]} />
+                    <meshBasicMaterial 
+                      color="#f43f5e" 
+                      transparent 
+                      opacity={0.3} 
+                      side={THREE.DoubleSide}
+                      blending={THREE.AdditiveBlending}
+                    />
+                  </mesh>
+                </Float>
+              )}
+
               {/* Room Skeleton/Walls */}
               <mesh>
                 <boxGeometry args={[roomWidth + 0.05, roomHeight + 0.05, roomDepth + 0.05]} />
@@ -83,13 +102,13 @@ function FloorSlab({ floor, index, totalFloors, incidentsOnFloor }) {
               {/* Individual Incident Marker Beams per POI */}
               {isPoiDanger && (
                 <group position={[0, 0, 0]}>
-                  <pointLight color={T.danger} intensity={15} distance={30} />
+                  <pointLight color={hasVisionAlert ? '#f43f5e' : T.danger} intensity={15} distance={30} />
                   <mesh position={[0, 50, 0]}>
                     <cylinderGeometry args={[0.3, 0.3, 100, 16, 1, true]} />
                     <meshBasicMaterial 
-                      color={T.danger} 
+                      color={hasVisionAlert ? '#fb7185' : T.danger} 
                       transparent 
-                      opacity={0.4} 
+                      opacity={hasVisionAlert ? 0.6 : 0.4} 
                       blending={THREE.AdditiveBlending} 
                       side={THREE.DoubleSide}
                     />

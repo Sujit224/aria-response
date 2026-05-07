@@ -22,6 +22,7 @@ export function Dashboard({ onGoQR }) {
   const [selectedFloorId, setSelectedFloorId] = useState(null)
   const [liveBlocked, setLiveBlocked] = useState([])
   const [livePath,    setLivePath]    = useState([])
+  const [liveDanger,  setLiveDanger]  = useState([])
   const [wsStatus,    setWsStatus]    = useState('connecting')
   const [loading,     setLoading]     = useState(true)
 
@@ -62,13 +63,11 @@ export function Dashboard({ onGoQR }) {
   const onThreatDetected = useCallback((data) => {
     // Add or update incident in the live list
     setIncidents(prev => {
-      const exists = prev.find(i => i.incident_id === data.incident_id)
-      if (exists) {
-        return prev.map(i =>
-          i.incident_id === data.incident_id
-            ? { ...i, blocked_nodes: data.blocked_nodes }
-            : i
-        )
+      const existingIdx = prev.findIndex(i => i.incident_id === data.incident_id)
+      if (existingIdx > -1) {
+        const next = [...prev]
+        next[existingIdx] = { ...next[existingIdx], ...data }
+        return next
       }
       return [{
         incident_id:    data.incident_id,
@@ -88,6 +87,7 @@ export function Dashboard({ onGoQR }) {
     if (selected?.incident_id === data.incident_id) {
       setLiveBlocked(data.blocked_nodes || [])
       setLivePath(data.path_update || [])
+      setLiveDanger(data.danger_path || [])
     }
 
     // Auto-select if CRITICAL and nothing selected
@@ -122,6 +122,7 @@ export function Dashboard({ onGoQR }) {
   const onPathUpdate = useCallback((data) => {
     if (selected?.incident_id === data.incident_id) {
       setLivePath(data.path_update || [])
+      setLiveDanger(data.danger_path || [])
       setLiveBlocked(data.blocked_nodes || [])
     }
   }, [selected])
@@ -142,6 +143,7 @@ export function Dashboard({ onGoQR }) {
     setSelectedFloorId(incident.floor_id)
     setLiveBlocked([])
     setLivePath([])
+    setLiveDanger([])
   }
 
   function handleFloorSelect(floorId) {
@@ -158,6 +160,14 @@ export function Dashboard({ onGoQR }) {
   function handleResolved(incidentId) {
     setIncidents(prev => prev.filter(i => i.incident_id !== incidentId))
     setSelected(null)
+  }
+
+  function handleClearSelection() {
+    setSelected(null)
+    setSelectedFloorId(null)
+    setLiveBlocked([])
+    setLivePath([])
+    setLiveDanger([])
   }
 
   const criticalCount = incidents.filter(i => SEV_LABEL[i.severity] === 'CRITICAL').length
@@ -243,8 +253,10 @@ export function Dashboard({ onGoQR }) {
               incident        = {selected}
               floorId         = {selectedFloorId}
               livePathUpdate  = {livePath}
+              liveDangerPath  = {liveDanger}
               liveBlockedNodes = {liveBlocked}
               onResolved      = {handleResolved}
+              onClose         = {handleClearSelection}
             />
           ) : (
             <Building3D blocks={blocks} incidents={incidents} />

@@ -51,7 +51,9 @@ export function useStaffSocket({
       try {
         const msg = JSON.parse(e.data)
         const { event, data } = msg
-        if (event === 'THREAT_DETECTED')    onThreatDetected?.(data)
+        if (event === 'THREAT_DETECTED' || event === 'INCIDENT_UPDATE') {
+          onThreatDetected?.(data)
+        }
         else if (event === 'STAFF_ALERT')   onStaffAlert?.(data)
         else if (event === 'INCIDENT_RESOLVED') onIncidentResolved?.(data)
         else if (event === 'DISPATCH_REMINDER') onDispatchReminder?.(data)

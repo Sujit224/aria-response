@@ -37,7 +37,7 @@ function SceneEffects() {
 }
 
 // --- 2. Advanced Path Rendering ---
-function AnimatedPath({ points }) {
+function AnimatedPath({ points, color = "#10b981" }) {
   const lineRef = useRef()
   const dashOffset = useRef(0)
 
@@ -52,7 +52,7 @@ function AnimatedPath({ points }) {
     <Line
       ref={lineRef}
       points={points}
-      color="#10b981"
+      color={color}
       lineWidth={5}
       dashed
       dashSize={0.6}
@@ -171,7 +171,7 @@ function PulsingMarker({ position, color, label, isIncident = false, type = 'poi
 // --- 4. Main Grid Model ---
 function GridModel({ incidentData }) {
   const {
-    static_grid, guest_coord, exit_coord, path_update,
+    static_grid, guest_coord, exit_coord, path_update, danger_path,
     blocked_nodes, all_pois
   } = incidentData
 
@@ -206,6 +206,11 @@ function GridModel({ incidentData }) {
     if (!Array.isArray(path_update)) return []
     return path_update.map(p => new THREE.Vector3(p[0] + offsetX + 0.5, 0.15, p[1] + offsetZ + 0.5))
   }, [path_update, offsetX, offsetZ])
+
+  const dangerPoints = useMemo(() => {
+    if (!Array.isArray(danger_path)) return []
+    return danger_path.map(p => new THREE.Vector3(p[0] + offsetX + 0.5, 0.15, p[1] + offsetZ + 0.5))
+  }, [danger_path, offsetX, offsetZ])
 
   // Premium Materials
   const wallMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
@@ -298,8 +303,9 @@ function GridModel({ incidentData }) {
         )
       })}
 
-      {/* Dynamic Path */}
-      {pathPoints.length > 1 && <AnimatedPath points={pathPoints} />}
+      {/* Dynamic Paths */}
+      {pathPoints.length > 1 && <AnimatedPath points={pathPoints} color="#10b981" />}
+      {dangerPoints.length > 1 && <AnimatedPath points={dangerPoints} color="#ef4444" />}
 
       {/* Critical Markers */}
       {(() => {

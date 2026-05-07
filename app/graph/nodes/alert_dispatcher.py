@@ -38,6 +38,7 @@ async def alert_dispatcher_node(state: PipelineState) -> PipelineState:
     # ── Build event payloads ──────────────────────────────────────
     blocked_list = [[c.x, c.y] for c in zone.blocked_nodes]
     path_list    = [[c.x, c.y] for c in zone.evacuation_path]
+    danger_list  = [[c.x, c.y] for c in zone.danger_path] if zone.danger_path else []
 
     threat_event = {
         "event": "THREAT_DETECTED",
@@ -49,6 +50,7 @@ async def alert_dispatcher_node(state: PipelineState) -> PipelineState:
             "full_location": zone.full_location,
             "blocked_nodes": blocked_list,
             "path_update":   path_list,
+            "danger_path":   danger_list,
             "assigned_staff_names": zone.assigned_staff_names,
             "static_grid":   zone.static_grid,
             "grid_width":    zone.grid_width,

@@ -116,6 +116,7 @@ export function GuestChat() {
       exit_name:     data.zone_name || 'EXIT A',
       blocked_nodes: data.blocked_nodes || [],
       path_update:   data.path_update || [],
+      danger_path:   data.danger_path || [],
       assigned_staff_names: data.assigned_staff_names || [],
       static_grid:   data.static_grid || [],
       grid_width:    data.grid_width || 0,
@@ -150,6 +151,7 @@ export function GuestChat() {
     setIncident(prev => prev ? {
       ...prev,
       path_update:   data.path_update || [],
+      danger_path:   data.danger_path || [],
       blocked_nodes: data.blocked_nodes || [],
     } : null)
 
@@ -235,6 +237,7 @@ export function GuestChat() {
                 exit_name:     d.exit_name,
                 distance:      d.distance,
                 steps:         d.steps?.split('||').filter(Boolean) || [],
+                danger_path:   d.danger_path?.split(';').map(p => p.split(',').map(Number)) || [],
                 room_name:     roomName,
               }))
             }

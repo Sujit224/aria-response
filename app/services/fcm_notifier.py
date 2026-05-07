@@ -27,35 +27,11 @@ from app.db.collections import (
     get_exits_on_floor,
     get_pois_on_floor,
 )
-from app.services.pathfinding import astar
+from app.services.pathfinding import astar, get_nearest_unblocked_exit, get_nearest_blocked_exit
 from app.services.direction_generator import generate_directions, format_distance
 
 
 _ZONE1_TITLE = "🚨 EMERGENCY — Evacuate Now"
-_ZONE2_TITLE = "⚠️ ALERT — Prepare to Evacuate"
-_ZONE3_TITLE = "ℹ️ ADVISORY — Incident Nearby"
-
-_SEVERITY_COLOR = {
-    "CRITICAL": "#dc2626",
-    "HIGH":     "#ea580c",
-    "MEDIUM":   "#d97706",
-    "LOW":      "#16a34a",
-}
-
-
-def _nearest_unblocked_exit(
-    exits: List[Dict],
-    guest_x: int, guest_y: int,
-    blocked_set: set,
-) -> Dict | None:
-    """Find the closest safe exit that is not itself a blocked node."""
-    valid = [
-        e for e in exits
-        if (e["coord_x"], e["coord_y"]) not in blocked_set
-    ]
-    if not valid:
-        valid = exits  # all blocked — edge case, use any exit
-    return min(valid, key=lambda e: abs(e["coord_x"] - guest_x) + abs(e["coord_y"] - guest_y))
 
 
 async def _send_one(
@@ -126,7 +102,7 @@ async def send_zone_evacuation_notifications(
         guest_y = room_doc["coord_y"]
         origin  = room_doc["room_name"]
 
-        exit_poi = _nearest_unblocked_exit(exits, guest_x, guest_y, blocked_set)
+        exit_poi = get_nearest_unblocked_exit(exits, guest_x, guest_y, blocked_set)
         path = astar(
             grid    = grid,
             start   = (guest_x, guest_y),
@@ -138,6 +114,17 @@ async def send_zone_evacuation_notifications(
         distance = format_distance(path)
         body = f"Head to {exit_poi['name']} ({distance}). {steps[0] if steps else ''}"
 
+        # Calculate Danger Path (path to the nearest BLOCKED exit, if any)
+        danger_exit = get_nearest_blocked_exit(exits, guest_x, guest_y, blocked_set)
+        danger_path = []
+        if danger_exit:
+            danger_path = astar(
+                grid    = grid,
+                start   = (guest_x, guest_y),
+                end     = (danger_exit["coord_x"], danger_exit["coord_y"]),
+                blocked = [],  # Ignore hazards to show the 'natural' but dangerous path
+            )
+
         # Data payload for PWA map overlay
         data_payload = {
             "incident_id":   incident_id,
@@ -147,6 +134,7 @@ async def send_zone_evacuation_notifications(
             "exit_coord":    f"{exit_poi['coord_x']},{exit_poi['coord_y']}",
             "distance":      distance,
             "path":          ";".join(f"{c[0]},{c[1]}" for c in path),
+            "danger_path":   ";".join(f"{c[0]},{c[1]}" for c in danger_path),
             "blocked":       ";".join(f"{b[0]},{b[1]}" for b in blocked_nodes),
             "steps":         "||".join(steps),
             "full_location": full_location,

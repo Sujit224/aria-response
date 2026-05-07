@@ -441,3 +441,363 @@ CONFIDENCE: 78%
 LOCATION  : Middle-Left
 MESSAGE   : Unattended bag at Middle-Left for 30 seconds. Potential threat.
 ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:33:54
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 76%
+LOCATION  : Bottom-Right
+MESSAGE   : BLOOD detected at Bottom-Right with 76% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:35:32
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : FIRE
+CONFIDENCE: 82%
+LOCATION  : Middle-Left
+MESSAGE   : FIRE confirmed at Middle-Left. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:42:16
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 81%
+LOCATION  : Bottom-Left
+MESSAGE   : GUN detected at Bottom-Left with 81% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:43:42
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 94%
+LOCATION  : Middle-Right
+MESSAGE   : Unattended bag at Middle-Right for 30 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:44:30
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 78%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 78% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:45:16
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 84%
+LOCATION  : Top-Left
+MESSAGE   : KNIFE detected at Top-Left with 84% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:46:16
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 76%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 76% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:46:49
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 77%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 77% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:47:27
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 84%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 84% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:48:35
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 85%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:49:24
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 85%
+LOCATION  : Middle-Right
+MESSAGE   : Unattended bag at Middle-Right for 30 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:49:36
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 77%
+LOCATION  : Bottom-Center
+MESSAGE   : BLOOD detected at Bottom-Center with 77% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 17:50:04
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 82%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 82% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:00:16
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 90%
+LOCATION  : Middle-Left
+MESSAGE   : KNIFE detected at Middle-Left with 90% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:03:18
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 87%
+LOCATION  : Bottom-Right
+MESSAGE   : BLOOD detected at Bottom-Right with 87% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:15:24
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 85%
+LOCATION  : Middle-Center
+MESSAGE   : GUN detected at Middle-Center with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:16:19
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 86%
+LOCATION  : Middle-Center
+MESSAGE   : GUN detected at Middle-Center with 86% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:19:57
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 90%
+LOCATION  : Middle-Center
+MESSAGE   : BLOOD detected at Middle-Center with 90% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:26:42
+LEVEL     : CRITICAL
+SOURCE    : smoke_detector
+TYPE      : SMOKE
+CONFIDENCE: 89%
+LOCATION  : Middle-Center
+MESSAGE   : SMOKE confirmed at Middle-Center. Fire hazard detected.
+ACTION    : Activate fire alarm, evacuate personnel, contact fire department.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:28:14
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 85%
+LOCATION  : Top-Left
+MESSAGE   : BLOOD detected at Top-Left with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:33:10
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 89%
+LOCATION  : Middle-Right
+MESSAGE   : Unattended bag at Middle-Right for 30 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:39:22
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 85%
+LOCATION  : Top-Left
+MESSAGE   : BLOOD detected at Top-Left with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:42:38
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 89%
+LOCATION  : Bottom-Right
+MESSAGE   : Unattended bag at Bottom-Right for 31 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:45:49
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 88%
+LOCATION  : Middle-Center
+MESSAGE   : GUN detected at Middle-Center with 88% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:47:35
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 87%
+LOCATION  : Bottom-Center
+MESSAGE   : GUN detected at Bottom-Center with 87% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:48:50
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 89%
+LOCATION  : Bottom-Center
+MESSAGE   : GUN detected at Bottom-Center with 89% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:51:00
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 88%
+LOCATION  : Middle-Left
+MESSAGE   : KNIFE detected at Middle-Left with 88% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:53:14
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : GUN
+CONFIDENCE: 85%
+LOCATION  : Middle-Center
+MESSAGE   : GUN detected at Middle-Center with 85% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:54:23
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 88%
+LOCATION  : Middle-Left
+MESSAGE   : BLOOD detected at Middle-Left with 88% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:54:57
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 90%
+LOCATION  : Middle-Left
+MESSAGE   : KNIFE detected at Middle-Left with 90% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:55:20
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 87%
+LOCATION  : Middle-Left
+MESSAGE   : BLOOD detected at Middle-Left with 87% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-07 18:59:02
+LEVEL     : HIGH
+SOURCE    : bag_detector
+TYPE      : ABANDONED_BAG
+CONFIDENCE: 87%
+LOCATION  : Bottom-Right
+MESSAGE   : Unattended bag at Bottom-Right for 31 seconds. Potential threat.
+ACTION    : Do not touch. Clear area and contact bomb disposal unit.
+
+============================================================
+TIMESTAMP : 2026-05-08 02:17:50
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 86%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 86% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-08 02:18:19
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 87%
+LOCATION  : Middle-Left
+MESSAGE   : KNIFE detected at Middle-Left with 87% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-08 02:19:05
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : KNIFE
+CONFIDENCE: 93%
+LOCATION  : Middle-Center
+MESSAGE   : KNIFE detected at Middle-Center with 93% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.
+
+============================================================
+TIMESTAMP : 2026-05-08 02:19:28
+LEVEL     : CRITICAL
+SOURCE    : weapon_detector
+TYPE      : BLOOD
+CONFIDENCE: 87%
+LOCATION  : Middle-Left
+MESSAGE   : BLOOD detected at Middle-Left with 87% confidence. Immediate threat.
+ACTION    : Evacuate area and contact armed response unit immediately.

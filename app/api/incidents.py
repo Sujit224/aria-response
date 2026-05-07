@@ -10,7 +10,7 @@ from app.db.collections import (
 )
 from app.models.schemas import IncomingMessage, PipelineState
 from app.graph.pipeline import aria_pipeline
-from app.services.pathfinding import reroute
+from app.services.pathfinding import reroute, astar, get_nearest_unblocked_exit, get_nearest_blocked_exit
 from app.db.collections import (
     get_floor, get_pois_on_floor, get_exits_on_floor,
 )
@@ -107,9 +107,9 @@ async def reroute_path(incident_id: str, guest_session_id: str):
         raise HTTPException(status_code=404, detail="Guest location unknown")
 
     blocked_set = {(b[0], b[1]) for b in all_blocked}
-    valid_exits = [e for e in exits if (e["coord_x"], e["coord_y"]) not in blocked_set] or exits
-    gx, gy = origin_poi["coord_x"], origin_poi["coord_y"]
-    nearest_exit = min(valid_exits, key=lambda e: abs(e["coord_x"] - gx) + abs(e["coord_y"] - gy))
+    
+    nearest_exit = get_nearest_unblocked_exit(exits, gx, gy, blocked_set)
+    danger_exit = get_nearest_blocked_exit(exits, gx, gy, blocked_set)
 
     new_path = reroute(
         grid          = floor["static_grid"],
@@ -118,6 +118,16 @@ async def reroute_path(incident_id: str, guest_session_id: str):
         blocked_nodes = all_blocked,
     )
 
+    danger_path = []
+    if danger_exit:
+        dpath = astar(
+            grid    = floor["static_grid"],
+            start   = (gx, gy),
+            end     = (danger_exit["coord_x"], danger_exit["coord_y"]),
+            blocked = [],
+        )
+        danger_path = [[p[0], p[1]] for p in dpath]
+
     await publish_session_event(
         guest_session_id,
         {
@@ -125,6 +135,7 @@ async def reroute_path(incident_id: str, guest_session_id: str):
             "data": {
                 "incident_id":   incident_id,
                 "path_update":   new_path,
+                "danger_path":   danger_path,
                 "blocked_nodes": all_blocked,
             },
         },

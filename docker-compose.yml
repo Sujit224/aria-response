@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: python:3.11-slim
@@ -10,7 +8,7 @@ services:
     command: >
       bash -c "
         apt-get update && apt-get install -y libgl1 libglib2.0-0 &&
-        pip install --no-cache-dir -r requirements.txt &&
+        pip install -r requirements.txt &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
     ports:

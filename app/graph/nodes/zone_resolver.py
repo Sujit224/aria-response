@@ -7,7 +7,7 @@ from app.db.collections import (
     save_incident, save_emergency_alert,
     list_floors,
 )
-from app.services.pathfinding import astar
+from app.services.pathfinding import astar, get_nearest_unblocked_exit, get_nearest_blocked_exit
 from app.services.fcm_notifier import send_zone_evacuation_notifications
 
 SEVERITY_INT = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "NONE": 1}
@@ -72,10 +72,13 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
     guest_x = nlp.coord_x or 0
     guest_y = nlp.coord_y or 0
 
-    nearest_exit = min(
-        exits,
-        key=lambda e: abs(e["coord_x"] - guest_x) + abs(e["coord_y"] - guest_y)
-    )
+    # ── Safe vs Danger exits ────────────────────────────────────
+    # For now, let's assume the origin POI (where fire started) blocks its own node
+    blocked_nodes_list = [[nlp.coord_x, nlp.coord_y]] if nlp.threat_type == "fire" else []
+    blocked_set = {(b[0], b[1]) for b in blocked_nodes_list}
+
+    nearest_exit = get_nearest_unblocked_exit(exits, guest_x, guest_y, blocked_set)
+    danger_exit = get_nearest_blocked_exit(exits, guest_x, guest_y, blocked_set)
 
     # ── Nearest aid kit ──────────────────────────────────────────
     aid_kits = [p for p in all_pois if p["type"] == "medical"]
@@ -95,11 +98,23 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
         grid    = floor["static_grid"],
         start   = (guest_x, guest_y),
         end     = (target_poi["coord_x"], target_poi["coord_y"]),
-        blocked = [],
+        blocked = [tuple(b) for b in blocked_nodes_list],
     )
     evac_path     = [Coord(x=c[0], y=c[1]) for c in path]
+    
+    # Calculate danger path to the blocked exit if one exists
+    danger_path_coords = []
+    if danger_exit:
+        dpath = astar(
+            grid    = floor["static_grid"],
+            start   = (guest_x, guest_y),
+            end     = (danger_exit["coord_x"], danger_exit["coord_y"]),
+            blocked = [], # Ignore hazards for the danger path
+        )
+        danger_path_coords = [Coord(x=c[0], y=c[1]) for c in dpath]
+
     target_coord  = Coord(x=target_poi["coord_x"], y=target_poi["coord_y"])
-    blocked_nodes = []
+    blocked_nodes = [Coord(x=b[0], y=b[1]) for b in blocked_nodes_list]
 
     # ── On-duty staff for this incident ──────────────────────────
     all_staff = await get_on_duty_staff(nlp.venue_id)
@@ -208,6 +223,7 @@ async def zone_resolver_node(state: PipelineState) -> PipelineState:
         nearest_exit_coord = target_coord,
         nearest_aid_kit    = nearest_aid_name,
         evacuation_path    = evac_path,
+        danger_path        = danger_path_coords,
         blocked_nodes      = blocked_nodes,
         staff_on_floor     = staff_ids,
         assigned_staff_names = assigned_staff_names,

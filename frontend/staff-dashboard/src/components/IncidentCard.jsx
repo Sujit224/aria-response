@@ -84,10 +84,22 @@ export function IncidentCard({ incident, selected, onSelect }) {
       <div style={{ 
         fontSize: 11, 
         color: selected ? 'rgba(255,255,255,0.8)' : T.textSub, 
-        marginBottom: 10,
+        marginBottom: 4,
         lineHeight: 1.4
       }}>
         {incident.full_location}
+      </div>
+
+      {/* Description / Message */}
+      <div style={{ 
+        fontSize: 10, 
+        color: selected ? '#fff' : T.textDim, 
+        marginBottom: 10,
+        lineHeight: 1.4,
+        fontStyle: 'italic',
+        opacity: 0.9
+      }}>
+        {incident.description || incident.summary}
       </div>
 
       {/* Source + pending dispatches */}
