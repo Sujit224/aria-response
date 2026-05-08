@@ -71,14 +71,14 @@ export function Dashboard({ onGoQR }) {
       }
       return [{
         incident_id:    data.incident_id,
-        type:           data.type.toLowerCase(),
+        type:           (data.type || 'unknown').toLowerCase(),
         severity:       data.severity === 'CRITICAL' ? 5 : data.severity === 'HIGH' ? 4 : 3,
-        full_location:  data.full_location,
+        full_location:  data.full_location || 'Unknown Location',
         floor_id:       data.floor_id || '',
         source:         data.source || 'vision',
         status:         'active',
         detected_at:    new Date().toISOString(),
-        blocked_nodes:  data.blocked_nodes,
+        blocked_nodes:  data.blocked_nodes || [],
         dispatches:     [],
       }, ...prev]
     })
@@ -93,11 +93,16 @@ export function Dashboard({ onGoQR }) {
     // Auto-select if CRITICAL and nothing selected
     setSelected(prev => {
       if (!prev && data.severity === 'CRITICAL') {
-        return { incident_id: data.incident_id, type: data.type.toLowerCase(),
-          severity: 5, full_location: data.full_location,
+        return { 
+          incident_id: data.incident_id, 
+          type: (data.type || 'unknown').toLowerCase(),
+          severity: 5, 
+          full_location: data.full_location || 'Unknown Location',
           floor_id: data.floor_id || '',
           source: data.source || 'vision',
-          status: 'active', detected_at: new Date().toISOString() }
+          status: 'active', 
+          detected_at: new Date().toISOString() 
+        }
       }
       return prev
     })
