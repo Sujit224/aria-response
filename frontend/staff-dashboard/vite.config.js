@@ -6,8 +6,14 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: {
-      '/api': { target: 'http://localhost:8000', changeOrigin: true },
-      '/ws':  { target: 'ws://localhost:8000',  changeOrigin: true, ws: true },
+      '/api': {
+        target: process.env.VITE_API_PROXY || 'http://localhost:8000',
+        changeOrigin: true
+      },
+      '/ws': {
+        target: process.env.VITE_WS_PROXY || 'ws://localhost:8000',
+        changeOrigin: true, ws: true
+      },
     },
     fs: {
       allow: ['..']
